@@ -1,5 +1,5 @@
 %define	name			wmpower
-%define	version			0.2.1
+%define	version			0.3.1
 %define	release			1
 
 
@@ -14,7 +14,6 @@ Group:		Applications/System
 Vendor:		Francisco Rodrigo Escobedo Robles (frer@pepix.net)
 Url:		http://wmpower.sourceforge.net/
 Source:		%{name}-%{version}.tar.bz2
-Patch0:		wmpower-0.2.0-compal.patch
 Provides:	wmpower
 BuildRoot:	/var/tmp/%{name}-%{version}-%{release}
 
@@ -26,7 +25,6 @@ graphically see (and set) the power management status of his laptop.
 
 %prep
 %setup -q
-%patch0 -p1
 
 
 %build
@@ -47,7 +45,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYING INSTALL NEWS README README.compal
+%doc AUTHORS BUGS ChangeLog COPYING INSTALL NEWS README README.compal THANKS TODO
 %attr(7755,root,root)/usr/bin/wmpower
 
 

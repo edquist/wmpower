@@ -1,60 +1,42 @@
-wmpower 0.3.0 (22 October 2003):
-- Added machine id for Satellite Pro 6000
-- Added support for hardware manifatured by Compal
-  and used by vendors such as Acer, HP, Toshiba...
-  You probably need to patch to your kernel to
-  enable support for this. See file README.compal
-  for all details. Credits and a big thank you go to
-  Francisco Rodrigo Escobedo Robles <frer@pepix.net>
-  who contributed this code.
-- Added spec file for RPM creation, thanks (again) to
-  Francisco Rodrigo Escobedo Robles.
-- Yet another /proc file to read temperature from,
-  thanks to Masahide Matsumoto <masahide@masahide.dip.jp>
+2004-03-18  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
-wmpower 0.2.0 (30 September 2003):
-- Project moved to autoconf/automake tools
-- General code reorganization
-- Hopefully lessened high CPU usage problems
-	Note for DELL users: your problem sits in
-	ACPI, not wmpower, so I can't help you :-(
-	Try setting a higher polling interval
-- Added option to set wmpower polling interval
-- You can now choose which battery to monitor
-- Added machine id for Toshiba Libretto L2
-- Fixed bug that on some machines showed battery charge > 100%
-- Added initial support for Dell laptops, thanks to
-  code contributed by Massimo Battistel <mbat@libero.it>
-	and revised by myself:
-	- battery
-	- fans (shows number of active fans)
-	- temperature
-- added another proc file to read temperature from
-  (  patch contributed by Christian Schlamkow
-     <christian.schlamkow@bau.uni-rostock.de>  )
-- if battery charge is critical, not beep if AC power is on
-  (  patch contributed by Christian Schlamkow
-     <christian.schlamkow@bau.uni-rostock.de>  )
-- Other things I'm forgetting to mention ;-)
+	* NEWS: update documentation
 
-wmpower 0.1.3 (04 June 2003):
-- Various code clean-ups
-- Made diagnostic messages a bit less 'scary'
-- Fixed a segfault when using a malformed -B option
-- New feature (for Toshiba): now wmpower tries to use acpi
-	to set lcd brightness; if this fails it tries using
-	hardware calls. This should work for newer Toshibas,
-	where the hardware method fails
-- New feature (for Toshiba): you can now adjust lcd
-	brightness using your mouse wheel, step by step.
-	Notice: right now, this works only for ACPI calls
+2004-03-14  Noberasco Michele  <noberasco.gnu@disi.unige.it>
 
-wmpower 0.1.2 (21 March 2003):
-- Makefile tweaks to make it aware of Gentoo Linux CFLAGS
+	* src/power_management/acpi/libacpi.c (read_acpi_state):
+	(code contributed by Ondrej Bojar <obo@cuni.cz>)
+	under ACPI correctly displays the time to full charge when the battery
+	is charging
 
-wmpower 0.1.1 (19 March 2003):
-- add support for CPU detection for compile optimizations
-- different install for root/normal user
+	* src/wmpower.c:
+	(code contributed by Ondrej Bojar <obo@cuni.cz>)
+	- the battery symbol is not shown as critical (blinking), if the battery
+	  is charging
+	- two new options added:
+	  -w   to specify any command to execute when the remaining time sinks to
+	       a threshold
+	  -W   the threshold of remaining time in minutes.
 
-wmpower 0.1.0 (11 March 2003):
-- First public release
+2004-03-10  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* wmpower.spec:
+	updated to reflect version 0.3.1
+
+	* src/wmpower.c (ShowBatteryPercentage):
+	some code clean ups
+
+	* configure.in:
+	some tweaks, update VERSION to 0.3.1
+
+	* src/power_management/acpi/libacpi.c (check_acpi):
+	Fix battery detection code: now batteries are presented
+	in the correct order
+
+2004-03-05  Noberasco Michele  <noberasco.gnu@disi.unige.it>
+
+	* src/power_management/toshiba/toshiba_lib.c (machine_is_toshiba):
+	Added machine id for Toshiba Satellite Pro 6100
+
+
+ChangeLog available only since March 05, 2004...

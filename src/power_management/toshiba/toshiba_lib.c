@@ -4,7 +4,7 @@
     begin                : Feb 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -25,10 +25,10 @@
  *                                                                         *
  ***************************************************************************/
 
- /***************************************************************************
+/***************************************************************************
     Many thanks to Jonathan A. Buzzard for his Toshiba(tm) Linux Utilities
                    I could never have done this otherwise
- ***************************************************************************/
+***************************************************************************/
 
 #define FAN_OFF 1
 #define FAN_ON 0
@@ -62,27 +62,23 @@ int Get_Fan_Status(void);
 
 
 int toshiba_get_fan_status(int use_toshiba_hardware)
-{
-	FILE *fp;
-	string fan_status = NULL;
-	int result = PM_Error;
-
+{	
 	if (use_toshiba_hardware != 2)
 	{
-		if ((fp=fopen("/proc/acpi/toshiba/fan", "r")))
+		FILE *fp = fopen("/proc/acpi/toshiba/fan", "r");
+		if (fp)
 		{
-			scan(fp, "%s%s", NULL, &fan_status);
-			fclose(fp);
-			if (fan_status)
+			int result;
+			if (fscanf(fp, "%*s%d", &result) == 1)
 			{
-				result = atoi(fan_status);
-				free(fan_status);
+				fclose(fp);
 				return result;
 			}
+			fclose(fp);
 		}
 		if (!use_toshiba_hardware) return PM_Error;
 	}
-
+	
 	if (Get_Fan_Status()<0x00)
   {
 		fprintf(stderr, "direct access to toshiba hardware failed:\n");
@@ -144,25 +140,19 @@ int acpi_set_lcd_brightness(int brightness)
 	static int current_brightness=-1;
 	int min_brightness = 0;
 	static int max_brightness;
-	char *tmp;
 
 	if (current_brightness == -1)
 	{
 	  fp= fopen("/proc/acpi/toshiba/lcd", "r");
-		if (fp == NULL)
+		if (!fp)
 		{
 			fprintf(stderr, "toshiba_lib: unable to set LCD brightness with ACPI.\n");
 			return 0;
 		}
-		scan(fp, "%s%s", NULL, &tmp);
-		current_brightness = atoi(tmp);
-		free(tmp); tmp= NULL;
-		scan(fp, "%s%s", NULL, &tmp);
-		max_brightness = atoi(tmp)-1;
-		free(tmp); tmp= NULL;
+		fscanf(fp, "%*s%d%*s%d", &current_brightness, &max_brightness);
 		fclose(fp);
 		fprintf(stderr, "toshiba_lib: min brightness is %d\n", min_brightness);
-		fprintf(stderr, "toshiba_lib: max brightness is %d\n", max_brightness);
+		fprintf(stderr, "toshiba_lib: max brightness is %d\n", --max_brightness);
 		fprintf(stderr, "toshiba_lib: current brightness is %d\n", current_brightness);
 	}
 
@@ -183,7 +173,7 @@ int acpi_set_lcd_brightness(int brightness)
 	if (brightness != current_brightness)
 	{
 		fp = fopen("/proc/acpi/toshiba/lcd", "w");
-		if (fp == NULL)
+		if (!fp)
 		{
 			fprintf(stderr, "toshiba_lib: unable to set LCD brightness with ACPI.\n");
 			return 0;
@@ -191,8 +181,7 @@ int acpi_set_lcd_brightness(int brightness)
 		fprintf(fp, "brightness:%d\n", brightness);
 		fclose(fp);
 		fp = fopen("/proc/acpi/toshiba/lcd", "r");
-		scan(fp, "%s%s", NULL, &tmp);
-		current_brightness = atoi(tmp);
+		fscanf(fp, "%*s%d", &current_brightness);	
 		fclose(fp);
 		if (brightness == current_brightness)
 			fprintf(stderr, "toshiba_lib: set LCD brightness to %d\n", brightness);
@@ -238,12 +227,12 @@ void hardware_set_lcd_brightness(int brightness)
 	if (brightness == UP_ONE_STEP)
 	{/* Right now this is broken... */
 	  /*if (current_brightness < TOSHIBA_LCD_MAX) lcd = current_brightness + 1;
-		else*/ return;
+			else*/ return;
 	}
 	if (brightness == DOWN_ONE_STEP)
 	{/* Right now this is broken... */
 	  /*if (current_brightness > TOSHIBA_LCD_MIN) lcd = current_brightness - 1;
-		else */return;
+			else */return;
 	}
 
   if (lcd != current_brightness)
@@ -371,11 +360,13 @@ int machine_is_toshiba(int *use_toshiba_hardware)
 		case 0xfc69: strcpy(toshiba_model, "T1900C"); break;
 		case 0xfc70: strcpy(toshiba_model, "Libretto L2"); break;
 		case 0xfc6a: strcpy(toshiba_model, "T1900"); break;
+		case 0xfc6c: strcpy(toshiba_model, "Satellite 5005 S504"); break;
 		case 0xfc6d: strcpy(toshiba_model, "T1850C"); break;
 		case 0xfc6e: strcpy(toshiba_model, "T1850"); break;
 		case 0xfc6f: strcpy(toshiba_model, "T1800"); break;
 		case 0xfc71: strcpy(toshiba_model, "Satellite Pro 6000"); break;
 		case 0xfc72: strcpy(toshiba_model, "Satellite 1800"); break;
+		case 0xfc7d: strcpy(toshiba_model, "Satellite Pro 6100"); break;
 		case 0xfc7e: strcpy(toshiba_model, "T4600C"); break;
 		case 0xfc7f: strcpy(toshiba_model, "T4600"); break;
 		case 0xfc8a: strcpy(toshiba_model, "T6600C"); break;
@@ -385,6 +376,8 @@ int machine_is_toshiba(int *use_toshiba_hardware)
 		case 0xfc9b: strcpy(toshiba_model, "T4700CT"); break;
 		case 0xfc9d: strcpy(toshiba_model, "T1950"); break;
 		case 0xfc9e: strcpy(toshiba_model, "T3400/T3400CT"); break;
+		case 0xfca6: strcpy(toshiba_model, "Portege 2010"); break;
+		case 0xfca9: strcpy(toshiba_model, "Satellite 2410-303"); break;
 		case 0xfcb2: strcpy(toshiba_model, "Libretto 30CT"); break;
 		case 0xfcba: strcpy(toshiba_model, "T2150"); break;
 		case 0xfcbe: strcpy(toshiba_model, "T4850CT"); break;
@@ -427,8 +420,8 @@ int machine_is_toshiba(int *use_toshiba_hardware)
 		default:
 			fprintf(stderr, "toshiba_lib: unrecognized machine identification:\n");
 			fprintf(stderr, "             machine id : 0x%04x    BIOS version : %d.%d    SCI version: %d.%d\n",
-        id, (bios & 0xff00)>>8, bios & 0xff,
-				(version & 0xff00)>>8, version & 0xff);
+							id, (bios & 0xff00)>>8, bios & 0xff,
+							(version & 0xff00)>>8, version & 0xff);
 			fprintf(stderr, "please report this info, along with your toshiba model,\n");
 			fprintf(stderr, "to noberasco.gnu@disi.unige.it\n");
 	}

@@ -1,7 +1,7 @@
-AC_INIT(wmpower, 0.3.0, noberasco.gnu@disi.unige.it)
-AC_PREREQ(2.57)
+AC_INIT([wmpower],[0.3.1],[noberasco.gnu@disi.unige.it])
+AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR(src/wmpower.c)
-AM_INIT_AUTOMAKE()
+AM_INIT_AUTOMAKE([1.7 check-news dist-bzip2])
 
 AC_GNU_SOURCE
 AC_PROG_INSTALL
@@ -9,65 +9,70 @@ AC_PROG_CC
 AC_PROG_RANLIB
 
 # Set my own flags for gcc
-if test "x$GCC" = "xyes"; then
-	CPULAGS=""
-	CFLAGS="-O3 -fomit-frame-pointer -pipe -W -Wall"
-	GCC_TEST_MESSAGE="Checking for gcc version"
-	AC_MSG_CHECKING([$GCC_TEST_MESSAGE])
-	GCCVERSION="`$CC -dumpversion`"
-	AC_MSG_RESULT([$GCCVERSION])
-	if test "`$CC -dumpversion | grep 3.`" != ""; then
-		#Good! let see if we can see the system arch
-		PROCESSOR=`cat /proc/cpuinfo`
-		#Is our CPU a Celeron?
-	  if test "`echo $PROCESSOR | grep \"Celeron\"`" != ""; then
-		  CPUFLAGS="-march=pentium2"
-		fi
-		if test "`echo $PROCESSOR | grep \"Celeron (Coppermine)\"`" != ""; then
-	 		CPUFLAGS="-march=pentium3"
-		fi
-		#Is our CPU a Pentium?
-		if test "`echo $PROCESSOR | grep \"Pentium\"`" != ""; then
-			CPUFLAGS="-march=pentium"
-		fi
-		#Is our CPU a Pentium II?
-		if test "`echo $PROCESSOR | grep \"Pentium II\"`" != ""; then
-			CPUFLAGS="-march=pentium2"
-		fi
-		#Is our CPU a Pentium III?
-		if test "`echo $PROCESSOR | grep \"Pentium III\"`" != ""; then
-			CPUFLAGS="-march=pentium3"
-		fi
-		#Is our CPU a Pentium 4?
-		if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) 4\"`" != ""; then
-			CPUFLAGS="-march=pentium4"
-		fi
-		#Athlon processors
-		if test "`echo $PROCESSOR | grep \"AMD Athlon(tm)\"`" != ""; then
-		  CPUFLAGS="-march=athlon"
-		fi
-		if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) MP\"`" != ""; then
-		  CPUFLAGS="-march=athlon-mp"
-		fi
-		if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) XP\"`" != ""; then
-		  CPUFLAGS="-march=athlon-xp"
-		fi
-		#Is our CPU an Ultra Sparc?
-		if test "`echo $PROCESSOR | grep \"UltraSparc\"`" != ""; then
-			CPUFLAGS="-mcpu=ultrasparc"
+	if test "$MY_CFLAGS" = ""; then
+		if test "x$GCC" = "xyes"; then
+			CPULAGS=""
+			MY_CFLAGS="-Os -fomit-frame-pointer -pipe -W -Wall"
+			GCC_TEST_MESSAGE="Checking for gcc version"
+			AC_MSG_CHECKING([$GCC_TEST_MESSAGE])
+			GCCVERSION="`$CC -dumpversion`"
+			AC_MSG_RESULT([$GCCVERSION])
+			if test "`$CC -dumpversion | grep 3.`" != ""; then
+				#Good! let see if we can see the system arch
+				PROCESSOR=`cat /proc/cpuinfo`
+				#Is our CPU a Celeron?
+			  if test "`echo $PROCESSOR | grep \"Celeron\"`" != ""; then
+				  CPUFLAGS="-march=pentium2"
+				fi
+				if test "`echo $PROCESSOR | grep \"Celeron (Coppermine)\"`" != ""; then
+			 		CPUFLAGS="-march=pentium3"
+				fi
+				#Is our CPU a Pentium?
+				if test "`echo $PROCESSOR | grep \"Pentium\"`" != ""; then
+					CPUFLAGS="-march=pentium"
+				fi
+				#Is our CPU a Pentium II?
+				if test "`echo $PROCESSOR | grep \"Pentium II\"`" != ""; then
+					CPUFLAGS="-march=pentium2"
+				fi
+				#Is our CPU a Pentium III?
+				if test "`echo $PROCESSOR | grep \"Pentium III\"`" != ""; then
+					CPUFLAGS="-march=pentium3"
+				fi
+				#Is our CPU a Pentium 4?
+				if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) 4\"`" != ""; then
+					CPUFLAGS="-march=pentium4"
+				fi
+				#Athlon processors
+				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm)\"`" != ""; then
+				  CPUFLAGS="-march=athlon"
+				fi
+				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) MP\"`" != ""; then
+				  CPUFLAGS="-march=athlon-mp"
+				fi
+				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) XP\"`" != ""; then
+				  CPUFLAGS="-march=athlon-xp"
+				fi
+				#Is our CPU an Ultra Sparc?
+				if test "`echo $PROCESSOR | grep \"UltraSparc\"`" != ""; then
+					CPUFLAGS="-mcpu=ultrasparc"
+				fi
+			else
+				#Alas, we can set only generic arch optimizations
+				PROCESSOR=`uname -m | grep 86`
+				if test "$PROCESSOR" != ""; then
+					CPUFLAGS="-march=$PROCESSOR"
+				fi
+			fi
+			if test "$CPUFLAGS" != ""; then
+				echo "Applying architecture optimizations: "$CPUFLAGS
+			fi
+			CFLAGS="$CPUFLAGS $MY_CFLAGS"
 		fi
 	else
-		#Alas, we can set only generic arch optimizations
-		PROCESSOR=`uname -m | grep 86`
-		if test "$PROCESSOR" != ""; then
-			CPUFLAGS="-march=$PROCESSOR"
-		fi
+		CFLAGS="$MY_CFLAGS"
 	fi
-	if test "$CPUFLAGS" != ""; then
-		echo "Applying architecture optimizations: "$CPUFLAGS
-	fi
-	CFLAGS="$CPUFLAGS $CFLAGS"
-fi
+# End of setting suctom flags for gcc
 
 # Check for C headers
 	HEADERS="stdio.h stdlib.h stdarg.h string.h time.h unistd.h ctype.h pwd.h sys/types.h \

@@ -95,72 +95,58 @@ int machine_is_compal (void)
 
 int compal_get_fan_status (void)
 {
-	FILE   *fp         = fopen (COMPAL_PROC_FILE_FAN, "r");
-	string  fan_status = NULL;
-	int     result     = 0;
-
-
+	FILE *fp = fopen (COMPAL_PROC_FILE_FAN, "r");
+	char  fan_status[3];
+	
 	if (!fp) return PM_Error;
 
-	scan   (fp, "%s%s%s", NULL, NULL, &fan_status);
+	if (fscanf (fp, "%*s%*s%2s", fan_status) != 1)
+	{
+		fclose (fp);
+		return PM_Error;
+	}
 	fclose (fp);
 
-	if (fan_status)
-	{
-		if (!strcmp ("on", fan_status))
-		{
-			free (fan_status);
-			result++;
-		}
-	}
-
-	return result;
+	if (!strcmp (fan_status, "on")) return 1;
+	return 0;
 }
 
 
 
 int compal_get_temperature (void)
 {
-	FILE   *fp     = fopen (COMPAL_PROC_FILE_TEMP, "r");
-	string  temp   = NULL;
-	int     result = PM_Error;
-
+	FILE *fp = fopen (COMPAL_PROC_FILE_TEMP, "r");
+	int   result;
 
 	if (!fp) return PM_Error;
 
-	scan(fp, "%s%s%s%s", NULL, NULL, &temp, NULL);
-	fclose(fp);
-
-	if (temp)
+	if (fscanf(fp, "%*s%*s%d", &result) == 1)
 	{
-		result = atoi (temp);
-		free (temp);
+		fclose(fp);
+		return result;
 	}
 
-	return result;
+	fclose(fp);
+	return PM_Error;
 }
 
 
 
 int compal_get_lcd_brightness (void)
 {
-	FILE   *fp                 = fopen (COMPAL_PROC_FILE_LCD, "r");
-	string  current_brightness = NULL;
-	int     result             = PM_Error;
-
+	FILE *fp = fopen (COMPAL_PROC_FILE_LCD, "r");
+	int   brightness;
 
 	if (!fp) return PM_Error;
 
-	scan   (fp, "%s%s%s", NULL, NULL, &current_brightness);
-	fclose (fp);
-
-	if (current_brightness)
+	if (fscanf (fp, "%*s%*s%d", &brightness) == 1)
 	{
-		result = atoi (current_brightness);
-		free (current_brightness);
+		fclose (fp);
+		return brightness;
 	}
 
-	return result;
+	fclose (fp);
+	return PM_Error;
 }
 
 

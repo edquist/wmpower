@@ -2,8 +2,8 @@
                           lib_utils.h  -  description
                              -------------------
     begin                : Sun Jan 20 15:34:25 CET 2002
-    copyright            : (C) 2002 by Noberasco Michele
-    e-mail               : 2001s098@educ.disi.unige.it
+    copyright            : (C) 2002-2004 by Noberasco Michele
+    e-mail               : noberasco.gnu@disi.unige.it
  ***************************************************************************/
 
 /***************************************************************************
@@ -25,61 +25,9 @@
  *                                                                         *
  ***************************************************************************/
 
-#define separator "/"
-
-/* simple date data type */
-typedef struct
-  {
-    int day;
-    int month;
-    int year;
-  } date;
-
-/* string type */
-typedef char *string;
-
-/* my rewrite of scanf and fscanf...
-   it allows use of unallocated strings */
-int scan(FILE *, char *, ...);
-
-/* Search for a file that contains <pattern> in a given dir */
-string search_file(string dir, string pattern);
-
-/* Get the date of last file modification */
-date *get_file_date(string file);
-
-/* Finds user Home Dir given the enviroment variables vector */
-char *get_home_dir(string envp[]);
-
-/* removes <dir> directory */
-void erase_dir(string dir);
-
-/* reallocate a string using the minimum amount of memory */
-void reallocate(char *stringa);
-
-/* Converts a string to an integer */
-/* int str_to_int(char *stringa);  */
-
-/* Converts an integer to a string */
-char *int_to_str(int intero);
-
-/* Gets the first right <lung> chars of <stringa> */
-char *right(char *stringa, int lung);
-
-/* date_confrontation > 0 --> a>b
-   date_confrontation = 0 --> a=b
-   date_confrontation < 0 --> a<b     */
-int date_confrontation(date a, date b);
-
-/* Copy text file <*orig> to <*dest>
-   <*dest>, if existing, is overwritten  */
-void file_copy(char *orig, char *dest);
-
-/* The following are to allow usage
-   of run_time loaded messages within programs    */
-int load_language_file(char *, char *);
-char *messages(int);
-
 /* increments *ptr 'til the beginning of a new line
    returns 0 if a '\0' is encountered               */
 char *jump_next_line(char *ptr);
+
+/* append any number of strings to dst */
+char *StrApp (char **dst, ...);

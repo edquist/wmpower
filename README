@@ -23,6 +23,7 @@ Features:
 - On Toshiba laptops you can use your mouse wheel to adjust
   the brightness of your lcd screen.
 - Support for Dell laptops for temperature and fan status
+- Support for Compal hardware (see README.compal)
 
 ----------------------------------------------------------------------
 
@@ -32,24 +33,3 @@ Type 'wmpower -h' to see all available options.
 Obviously it needs a running X-Server to work.
 
 ----------------------------------------------------------------------
-  
-Bugs:
-None that I know of... if you find one (or would like some nifty
-features added), please mail me.
-
-----------------------------------------------------------------------
-
-To do:
-- Split the program in two: a daemon to set power management 
-  features and a gui to show the status.
-- Implement some configuration files... we don't want to type
-  all these options every time, don't we?  
-
-----------------------------------------------------------------------
-
-Thanks:
-- Filippo Panessa for his 'wmab' program... it all started from here.
-- Costantino Pistagna for his 'wmacpimon'... this is where I got
-  initial ACPI support.
-- Jonathan A. Buzzard for his Toshiba(tm) Linux Utilities... guess 
-  what I got from there ;-)

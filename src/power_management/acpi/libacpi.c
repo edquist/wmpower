@@ -4,7 +4,7 @@
     begin                : Feb 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -25,13 +25,13 @@
  *                                                                         *
  ***************************************************************************/
 
- /***************************************************************************
+/***************************************************************************
         Originally written by Costantino Pistagna for his wmacpimon
- ***************************************************************************/
+***************************************************************************/
 
 
 #ifndef _GNU_SOURCE
-	#define _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
 #include <stdio.h>
@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <ctype.h>
 
 #include "libacpi.h"
 #include "power_management.h"
@@ -52,6 +53,21 @@ char buf[512];
 static char batteries[MAXBATT][128];
 static char  battinfo[MAXBATT][128];
 
+
+void sort(char names[MAXBATT][128], int count)
+{
+	int i, j;
+	char temp[128];
+
+	for (i=0; i<(count-1); i++)
+		for (j=i+1; j<count; j++)
+			if (strcmp(names[j], names[i]) < 0)
+			{
+				strcpy(temp, names[j]);
+				strcpy(names[j], names[i]);
+				strcpy(names[i], temp);
+			}
+}
 
 /* see if we have ACPI support */
 int check_acpi(void)
@@ -67,55 +83,103 @@ int check_acpi(void)
   batt_count = 0;
   battdir = opendir ("/proc/acpi/battery");
   if (!battdir) return 0;
+
   while ((batt = readdir (battdir)))
   {
     name = batt->d_name;
 
     /* skip . and .. */
-    if (!strncmp (".", name, 1) || !strncmp ("..", name, 2)) continue;
+    if (!strcmp (".", name) || !strcmp ("..", name)) continue;
+
     if (!access("/proc/acpi/battery/1/status", R_OK))
 	    sprintf (batteries[batt_count], "/proc/acpi/battery/%s/status", name);
     else
 	    sprintf (batteries[batt_count], "/proc/acpi/battery/%s/state", name);
     sprintf (battinfo[batt_count], "/proc/acpi/battery/%s/info", name);
+
     batt_count++;
   }
   closedir (battdir);
+
+	/* order battery names as readdir doesn't handle that */
+	if (batt_count > 1) sort(batteries, batt_count);
+
+	fprintf(stderr, "libacpi: found %d batter%s\n", batt_count, (batt_count == 1) ? "y" : "ies");
 
   return 1;
 }
 
 
+char *find_acad_proc_file(void)
+{
+  DIR *dir;
+  char *basedir = "/proc/acpi/ac_adapter/";
+  struct dirent *entry;
+
+  dir= opendir(basedir);	
+  if (!dir) return NULL;
+
+  while ((entry= readdir(dir)))
+  {
+		char *result = NULL;
+		char *temp1, *temp2, *temp3;
+    if (!strcmp(entry->d_name, "." )) continue;
+    if (!strcmp(entry->d_name, "..")) continue;    
+    temp1 = StrApp((char**)NULL, basedir, entry->d_name, "/state",  (char*)NULL);
+		temp2 = StrApp((char**)NULL, basedir, entry->d_name, "/status", (char*)NULL);
+		temp3 = StrApp((char**)NULL, basedir, entry->d_name, "/stats",  (char*)NULL);
+		
+		if      (!access(temp1, R_OK)) {result = temp1; free(temp2); free(temp3);}
+		else if (!access(temp2, R_OK)) {result = temp2; free(temp1); free(temp3);}
+		else if (!access(temp3, R_OK)) {result = temp3; free(temp1); free(temp2);}
+
+		if (result)
+		{
+			closedir(dir);
+			return result;
+		}
+		free(temp1); free(temp2); free(temp3);
+  }
+  closedir(dir);
+
+	return NULL;
+}
+
 void read_acad_state (ACADstate *acadstate)
 {
+	static int   searched = 0;
+	static char *file     = NULL;	
+	static char *where    = NULL;
 	FILE *fp;
-	char *where = NULL;
 
-	if (!(fp = fopen ("/proc/acpi/ac_adapter/0/status", "r")))
-    if (!(fp = fopen ("/proc/acpi/ac_adapter/ACAD/state", "r")))
-      if (!(fp = fopen ("/proc/acpi/ac_adapter/AC/state", "r")))
-        if (!(fp = fopen ("/proc/acpi/ac_adapter/ADP1/state", "r")))
-	        return;
+	if (!searched)
+	{
+		file = find_acad_proc_file();
+		searched = 1;
+	}
+	if (!file) return;
+	if (!(fp = fopen(file, "r"))) return;
 
 	fread_unlocked (buf, 512, 1, fp);
 	fclose(fp);
 
-	if (strncmp(buf, "state:",  6) == 0) where = buf + 26;
-	if (strncmp(buf, "Status:", 7) == 0) where = buf + 26;
-
-	if (where)
+	if (!where)
 	{
-		if (where[0] == 'n') acadstate->state = 1;
-		if (where[0] == 'f') acadstate->state = 0;
+		if (!strncmp(buf, "state:",  6)) where = buf + 26;
+		if (!strncmp(buf, "Status:", 7)) where = buf + 26;
 	}
+	if (!where) return;
+	
+	if (where[0] == 'n') acadstate->state = 1;
+	if (where[0] == 'f') acadstate->state = 0;	
 }
 
 
 void read_acpi_info (ACPIinfo *acpiinfo, int battery)
 {
 	FILE *fp;
-	char *ptr = buf;
-	int offset = 25;
+	char *ptr    = buf;
+	int   offset = 25;
 
   if (battery > MAXBATT) return;
   if (!(fp = fopen (battinfo[battery], "r"))) return;
@@ -216,12 +280,12 @@ void read_acpi_state (ACPIstate *acpistate, ACPIinfo *acpiinfo, int battery)
 		{
 			if (ptr[offset] != 'y')
 			{
-				acpistate->present = 0;
-				acpistate->state = UNKNOW;
-				acpistate->prate = 0;
-				acpistate->rcapacity = 0;
-				acpistate->pvoltage = 0;
-				acpistate->rtime = 0;
+				acpistate->present    = 0;
+				acpistate->state      = UNKNOW;
+				acpistate->prate      = 0;
+				acpistate->rcapacity  = 0;
+				acpistate->pvoltage   = 0;
+				acpistate->rtime      = 0;
 				acpistate->percentage = 0;
 				return;
 			}
@@ -282,29 +346,68 @@ void read_acpi_state (ACPIstate *acpistate, ACPIinfo *acpiinfo, int battery)
 
 	/* time remaining in minutes */
 	if (!acpistate->prate) return;
-	acpistate->rtime = ((float) ((float) acpistate->rcapacity / (float) acpistate->prate)) * 60;
+	if (acpistate->state == 2) /* charging */
+		acpistate->rtime = ((float) ((float) (acpiinfo->last_full_capacity - acpistate->rcapacity) / (float) acpistate->prate)) * 60;
+	else /* discharging */
+		acpistate->rtime = ((float) ((float) acpistate->rcapacity / (float) acpistate->prate)) * 60;
 	if (acpistate->rtime <= 0) acpistate->rtime = 0;
 }
 
+char *find_temperature_proc_file(void)
+{
+  DIR *dir;
+  char *basedir = "/proc/acpi/thermal_zone/";
+  struct dirent *entry;
+
+  dir= opendir(basedir);	
+  if (!dir) return NULL;
+
+  while ((entry= readdir(dir)))
+  {
+		char *temp;
+    if (!strcmp(entry->d_name, "." )) continue;
+    if (!strcmp(entry->d_name, "..")) continue;    
+    temp = StrApp((char**)NULL, basedir, entry->d_name, "/temperature", (char*)NULL);
+		if (!access(temp, R_OK))
+		{
+			closedir(dir);
+			return temp;
+		}
+		free(temp);
+  }
+  closedir(dir);
+
+	return NULL;
+}
 
 void acpi_get_temperature(int *temperature, int *temp_is_celsius)
 {
+	static int   temp;
+	static char  unit[2];
+	static int   searched = 0;
+	static char *file     = NULL;
 	FILE *fp;
-	char *temp = NULL;
-	char *unit = NULL;
 
-	if (!(fp=fopen("/proc/acpi/thermal_zone/THRM/temperature", "r")))
-		if (!(fp=fopen("/proc/acpi/thermal_zone/THR2/temperature", "r")))
-			if (!(fp=fopen("/proc/acpi/thermal_zone/ATF0/temperature", "r")))
-			{
-				(*temperature)     = PM_Error;
-				(*temp_is_celsius) = PM_Error;
-				return;
-			}
-	scan(fp, "%s%s%s", NULL, &temp, &unit);
+	(*temperature)     = PM_Error;
+	(*temp_is_celsius) = PM_Error;
+
+	if (!searched)
+	{
+		file = find_temperature_proc_file();
+		searched = 1;
+	}
+	if (!file) return;
+	if (!(fp=fopen(file, "r"))) return;
+	if (!fgets(buf, 512, fp))
+	{
+		fclose(fp);
+		return;
+	}
 	fclose(fp);
 
-	(*temperature) = atoi(temp);
-	if (strcmp(unit, "C") == 0) (*temp_is_celsius) = 1;
+	if (sscanf(buf, "%*s%d%1s", &temp, unit) != 2) return;
+
+	(*temperature) = temp;
+	if (*unit == 'C') (*temp_is_celsius) = 1;
 	else (*temp_is_celsius) = 0;
 }

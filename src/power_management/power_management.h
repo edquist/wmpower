@@ -4,7 +4,7 @@
     begin                : Feb 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -30,17 +30,17 @@
 #define PM_APM  3
 
 typedef struct
-  {
-	  int battery_percentage;
-		int battery_charging;
-		int battery_time;
-    int battery_present;
-		int ac_on_line;
-		int fan_status;
-		int temperature;
-		int temp_is_celsius;
+{
+	int battery_percentage;
+	int battery_charging;
+	int battery_time;
+	int battery_present;
+	int ac_on_line;
+	int fan_status;
+	int temperature;
+	int temp_is_celsius;
 
-  } pm_status;
+} pm_status;
 
 int pm_support(int which_battery);
 void get_power_status(pm_status *power_status);
