@@ -216,7 +216,7 @@ void internal_set_pm_features(int ac_status)
   static int seti_status=0;
     
   if (fast_charge_mode) ac_status=0;
-  
+		
   if (!toshiba_machine && (pm_type == PM_ACPI))
   {
     /* Set ACPI specific features here... */    

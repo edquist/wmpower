@@ -58,7 +58,7 @@ void reallocate(string temp)
     temp= (string) realloc( (void *) temp, (sizeof(char)*(i+1)) );
     if ( (temp == NULL) && (i > 0) )
     {
-      perror("\nrialloca: Error reallocating memory...\n");
+      perror("\nreallocate: Error reallocating memory...\n");
       abort();
     }
     temp[i]= '\0';
