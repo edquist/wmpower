@@ -104,7 +104,6 @@ int check_cpufreq_2_6(void)
 		if (!fp)
 		{ /* no good... */
 			free(filename);
-			fclose(fp);
 			continue;
 		}
 		if (getline(&line, &len, fp) == -1)

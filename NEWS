@@ -1,3 +1,9 @@
+wmpower 0.4.1 (25 Feb 2005):
+- Fixed bug, reported by Pezhman Givy <phg@snafu.de>,
+	that made wmpower crash on startup when checking for cpufreq
+	support, if this support wasn't there...
+
+
 wmpower 0.4.0 (23 Feb 2005):
 - Added option to redirect wmpower output to the system logger.
 - Added support for CPU frequency scaling (2.6 kernels only).

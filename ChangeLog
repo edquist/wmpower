@@ -1,3 +1,10 @@
+2005-02-23  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/power_management/cpufreq/cpufreq.c (check_cpufreq_2_6):
+	Fixed bug, reported by Pezhman Givy <phg@snafu.de>,
+	that made wmpower crash on startup when checking for cpufreq
+	support, if this support wasn't there...
+
 2005-02-22  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/power_management/power_management.c (calculate_battery_time):
