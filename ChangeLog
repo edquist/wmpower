@@ -1,0 +1,46 @@
+wmpower 0.2.0 (30 September 2003):
+- Project moved to autoconf/automake tools
+- General code reorganization
+- Hopefully lessened high CPU usage problems
+	Note for DELL users: your problem sits in
+	ACPI, not wmpower, so I can't help you :-(
+	Try setting a higher polling interval
+- Added option to set wmpower polling interval
+- You can now choose which battery to monitor
+- Added machine id for Toshiba Libretto L2
+- Fixed bug that on some machines showed battery charge > 100%
+- Added initial support for Dell laptops, thanks to
+  code contributed by Massimo Battistel <mbat@libero.it>
+	and revised by myself:
+	- battery
+	- fans (shows number of active fans)
+	- temperature
+- added another proc file to read temperature from
+  (  patch contributed by Christian Schlamkow
+     <christian.schlamkow@bau.uni-rostock.de>  )
+- if battery charge is critical, not beep if AC power is on
+  (  patch contributed by Christian Schlamkow
+     <christian.schlamkow@bau.uni-rostock.de>  )
+- Other things I'm forgetting to mention ;-)
+
+wmpower 0.1.3 (04 June 2003):
+- Various code clean-ups
+- Made diagnostic messages a bit less 'scary'
+- Fixed a segfault when using a malformed -B option
+- New feature (for Toshiba): now wmpower tries to use acpi
+	to set lcd brightness; if this fails it tries using
+	hardware calls. This should work for newer Toshibas,
+	where the hardware method fails
+- New feature (for Toshiba): you can now adjust lcd
+	brightness using your mouse wheel, step by step.
+	Notice: right now, this works only for ACPI calls
+
+wmpower 0.1.2 (21 March 2003):
+- Makefile tweaks to make it aware of Gentoo Linux CFLAGS
+
+wmpower 0.1.1 (19 March 2003):
+- add support for CPU detection for compile optimizations
+- different install for root/normal user
+
+wmpower 0.1.0 (11 March 2003):
+- First public release

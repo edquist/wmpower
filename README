@@ -7,7 +7,7 @@ graphically see (and set) the power management status of his laptop.
 
 Features:
 - It works;
-- Battery status display;
+- Battery status display (you choose the battery);
 - Both APM and ACPI kernels are supported;
 - On ACPI kernels you get fan status and a thermal sensor;
 - Direct access to Toshiba hardware: you get fan status
@@ -20,12 +20,9 @@ Features:
   make it recharge much faster;
 - no-meddling option: if you want the program to display
   power manamenegt status, but not to take any action.
-
-----------------------------------------------------------------------
-
-Installation:
-- make
-- make install
+- On Toshiba laptops you can use your mouse wheel to adjust
+  the brightness of your lcd screen.
+- Support for Dell laptops for temperature and fan status
 
 ----------------------------------------------------------------------
 
