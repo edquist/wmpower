@@ -4,7 +4,7 @@
     begin                : Feb 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -25,10 +25,10 @@
  *                                                                         *
  ***************************************************************************/
 
- /***************************************************************************
+/***************************************************************************
                 Many thanks to Filippo Panessa for his wmab...
                    it's code was the base for this program
- ***************************************************************************/
+***************************************************************************/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,8 +43,6 @@
 #include "wmpower_master.xpm"
 #include "wmpower_master_LowColor.xpm"
 #include "wmpower_mask.xbm"
-
-#define VERSION "0.2.0"
 
 void ParseCMDLine (int argc, char *argv[]);
 void ShowACstatus(int ac_on_line);
@@ -86,28 +84,28 @@ int main (int argc, char *argv[])
   XEvent event;
   int fbc_toggle=1, fbc_auto=1;
   int old_battery_charging;
-	time_t polling = 0;
-	struct timespec delay;     /* pause between interface updates */
+  time_t polling = 0;
+  struct timespec delay;     /* pause between interface updates */
 
   delay.tv_sec  = 0;
   delay.tv_nsec = 500000000;
 
   BlinkRate = (BlinkRate >= 0.0) ? BlinkRate : -1.0 * BlinkRate;
 
-	fprintf(stderr, "\nWelcome to wmpower version %s...\n", VERSION);
+  fprintf(stderr, "\nWelcome to wmpower version %s...\n", VERSION);
 
   /* Parse any command line arguments. */
   ParseCMDLine (argc, argv);
 
   /*  Check for Power Management support  */
   if (!pm_support(our_battery))
-	{
-	  fprintf (stderr, "\nwmpower: No power management support...\n");
-		return -1;
-	}
+  {
+    fprintf (stderr, "\nwmpower: No power management support...\n");
+    return -1;
+  }
 
-	/* Create window of the program */
-	if (UseLowColorPixmap) openXwindow (argc, argv, wmpower_master_LowColor, (char *) wmpower_mask_bits, wmpower_mask_width, wmpower_mask_height);
+  /* Create window of the program */
+  if (UseLowColorPixmap) openXwindow (argc, argv, wmpower_master_LowColor, (char *) wmpower_mask_bits, wmpower_mask_width, wmpower_mask_height);
   else openXwindow (argc, argv, wmpower_master, (char *) wmpower_mask_bits, wmpower_mask_width, wmpower_mask_height);
 
   /* Loop until we die... */
@@ -115,12 +113,12 @@ int main (int argc, char *argv[])
   {
     /* Get current power status */
     old_battery_charging = power_status.battery_charging;
-		if (!waittime) get_power_status(&power_status);
-		else if ((time(NULL)-polling) >= waittime)
-		{
-			get_power_status(&power_status);
-			polling = time(NULL);
-		}
+    if (!waittime) get_power_status(&power_status);
+    else if ((time(NULL)-polling) >= waittime)
+    {
+      get_power_status(&power_status);
+      polling = time(NULL);
+    }
 
     /* Manage power features only if function is not disabled */
     if (!no_meddling)
@@ -146,57 +144,57 @@ int main (int argc, char *argv[])
       set_pm_features();
     }
 
-		/* Show AC status led */
-		ShowACstatus(power_status.ac_on_line);
+    /* Show AC status led */
+    ShowACstatus(power_status.ac_on_line);
 
-		/* Display FAN status. */
-		ShowFanStatus(power_status.fan_status);
+    /* Display FAN status. */
+    ShowFanStatus(power_status.fan_status);
 
-		/* Display temperature. */
-		ShowTemperature(power_status.temperature, power_status.temp_is_celsius);
+    /* Display temperature. */
+    ShowTemperature(power_status.temperature, power_status.temp_is_celsius);
 
     /* Display charge status */
-		ShowChargeStatus(power_status.battery_charging);
+    ShowChargeStatus(power_status.battery_charging);
 
     /* Display the "Time Left" */
-		ShowBatteryTime(power_status.battery_time, power_status.battery_percentage);
+    ShowBatteryTime(power_status.battery_time, power_status.battery_percentage);
 
     /* Display battery percentage */
-		ShowBatteryPercentage(power_status.battery_percentage);
+    ShowBatteryPercentage(power_status.battery_percentage);
 
     /* Display battery status led */
     ShowBatteryLed(power_status.battery_present, power_status.battery_percentage, power_status.ac_on_line);
 
     /* Process any pending X events. */
     while (XPending (display))
-	  {
-	    XNextEvent (display, &event);
-	    switch (event.type)
-	    {
-	      case Expose:
-	        RedrawWindow ();
-	        break;
-	      case ButtonPress:
-		    	if (event.xbutton.button == wheel_button_up)
-					{
-						lcdBrightness_UpOneStep();
-						break;
-					}
-					if (event.xbutton.button == wheel_button_down)
-					{
-						lcdBrightness_DownOneStep();
-						break;
-					}
-          if (fast_battery_charge(fbc_toggle) == fbc_toggle)
-          {
-            fbc_toggle = !fbc_toggle;
-            fbc_auto = 0;
-          }
-	        break;
-	      case ButtonRelease:
-	        break;
-	    }
-	  }
+    {
+      XNextEvent (display, &event);
+      switch (event.type)
+      {
+      case Expose:
+	RedrawWindow ();
+	break;
+      case ButtonPress:
+	if (event.xbutton.button == wheel_button_up)
+	{
+	  lcdBrightness_UpOneStep();
+	  break;
+	}
+	if (event.xbutton.button == wheel_button_down)
+	{
+	  lcdBrightness_DownOneStep();
+	  break;
+	}
+	if (fast_battery_charge(fbc_toggle) == fbc_toggle)
+	{
+	  fbc_toggle = !fbc_toggle;
+	  fbc_auto = 0;
+	}
+	break;
+      case ButtonRelease:
+	break;
+      }
+    }
 
     /* Redraw and wait for next update */
     RedrawWindow ();
@@ -225,7 +223,7 @@ void ShowACstatus(int ac_on_line)
 void ShowFanStatus(int fan_status)
 {
 
-	if (fan_status == PM_Error)
+  if (fan_status == PM_Error)
   {
     /* Plot the red - Symbol                */
     copyXPMArea (165, 60, 6, 7, 23, 50);
@@ -249,10 +247,10 @@ void ShowChargeStatus(int charging)
 
   /* Check to see if we are charging. */
   if (charging)
-	  /* Battery Status: Charging.      */
+    /* Battery Status: Charging.      */
     copyXPMArea (82, 68, 7, 9, 6, 7);
   else
-  	/* Battery Status: NOT Charging.  */
+    /* Battery Status: NOT Charging.  */
     copyXPMArea (88, 68, 7, 9, 6, 7);
 
 }
@@ -284,12 +282,12 @@ void ShowBatteryLed(int present, int percentage, int ac_on_line)
     {
       Toggle = 1;
       copyXPMArea (58, 105, 16, 10, 43, 34);
-  	}
+    }
     return;
   }
 
   /* Battery Status: Low. */
- 	/* Fixed yellow led     */
+  /* Fixed yellow led     */
   if (percentage <= LowLevel)
   {
     copyXPMArea (22, 105, 16, 10, 43, 34);
@@ -308,31 +306,31 @@ void ShowBatteryLed(int present, int percentage, int ac_on_line)
 void ShowTemperature(int temp, int temp_is_celsius)
 {
 
-	/* PM_Error getting temperature value */
-	/* or value out of range              */
-	if ( (temp < 0) || (temp > 99) )
-	{
-		/* Plot PM_Error message */
+  /* PM_Error getting temperature value */
+  /* or value out of range              */
+  if ( (temp < 0) || (temp > 99) )
+  {
+    /* Plot PM_Error message */
     copyXPMArea (165, 60, 6, 7, 33, 50);
     copyXPMArea (165, 60, 6, 7, 39, 50);
     copyXPMArea (135, 60, 6, 7, 45, 50);
-		copyXPMArea (68, 69, 6, 7, 51, 50);
-	  return;
-	}
+    copyXPMArea (68, 69, 6, 7, 51, 50);
+    return;
+  }
 
   /* Plot temperature */
-	if (temp < 10) copyXPMArea ((temp) * 6 + 4, 69, 6, 7, 39, 50);
-	else
-	{
- 	  copyXPMArea ((temp / 10) * 6 + 4, 69, 6, 7, 33, 50);
-		copyXPMArea ((temp % 10) * 6 + 4, 69, 6, 7, 39, 50);
-	}
+  if (temp < 10) copyXPMArea ((temp) * 6 + 4, 69, 6, 7, 39, 50);
+  else
+  {
+    copyXPMArea ((temp / 10) * 6 + 4, 69, 6, 7, 33, 50);
+    copyXPMArea ((temp % 10) * 6 + 4, 69, 6, 7, 39, 50);
+  }
 
-	/* Plot the ° Symbol */
-	copyXPMArea (135, 60, 6, 7, 45, 50);
+  /* Plot the ° Symbol */
+  copyXPMArea (135, 60, 6, 7, 45, 50);
 
-	/* Plot the C Symbol */
-	if (temp_is_celsius) copyXPMArea (68, 69, 6, 7, 51, 50);
+  /* Plot the C Symbol */
+  if (temp_is_celsius) copyXPMArea (68, 69, 6, 7, 51, 50);
 
 }
 
@@ -344,23 +342,23 @@ void ShowTemperature(int temp, int temp_is_celsius)
 void ShowBatteryTime(int time, int percentage)
 {
   int battery_time=time;
-	int hour, min;
+  int hour, min;
 
-	if ((battery_time < -1) || ( (battery_time == 0) && (percentage == 0) ) )
-	{
+  if ((battery_time < -1) || ( (battery_time == 0) && (percentage == 0) ) )
+  {
     /* In case there is some problem reading battery time
-		   we display a "null" indicator (--:--).                  */
-	  copyXPMArea (83, 106, 41, 9, 15, 7);
-		return;
-	}
+       we display a "null" indicator (--:--).                  */
+    copyXPMArea (83, 106, 41, 9, 15, 7);
+    return;
+  }
 
-	/* Now we are sure battery time is consistent */
-	if (percentage == 100) battery_time = 0;
-	hour = battery_time / 60;
+  /* Now we are sure battery time is consistent */
+  if (percentage == 100) battery_time = 0;
+  hour = battery_time / 60;
   min = battery_time % 60;
 
-	/* Show 10's (hour) */
-	copyXPMArea ((hour / 10) * 7 + 5, 93, 7, 9, 21, 7);
+  /* Show 10's (hour) */
+  copyXPMArea ((hour / 10) * 7 + 5, 93, 7, 9, 21, 7);
 
   /* Show 1's (hour)  */
   copyXPMArea ((hour % 10) * 7 + 5, 93, 7, 9, 29, 7);
@@ -387,33 +385,33 @@ void ShowBatteryPercentage(int percentage)
   copyXPMArea (66, 31, 49, 9, 7, 21);	/* Show Default Meter */
 
   if (percentage == 100)
-	{
+  {
     /* If 100%, show 100% */
-	  copyXPMArea (15, 81, 1, 7, 7, 34);
-	  copyXPMArea (5, 81, 6, 7, 9, 34);
-	  copyXPMArea (5, 81, 6, 7, 15, 34);
-	  copyXPMArea (64, 81, 7, 7, 21, 34);	/* Show '%' */
+    copyXPMArea (15, 81, 1, 7, 7, 34);
+    copyXPMArea (5, 81, 6, 7, 9, 34);
+    copyXPMArea (5, 81, 6, 7, 15, 34);
+    copyXPMArea (64, 81, 7, 7, 21, 34);	/* Show '%' */
 
     /* Show rainbow battery bar             */
     copyXPMArea (66, 52, 49, 9, 7, 21);
 
     return;
-	}
+  }
   /* Show 10's */
   if (percentage >= 10)	copyXPMArea ((percentage / 10) * 6 + 4, 81, 6, 7, 9, 34);
 
   /* Show 1's */
-	copyXPMArea ((percentage % 10) * 6 + 4, 81, 6, 7, 15, 34);
+  copyXPMArea ((percentage % 10) * 6 + 4, 81, 6, 7, 15, 34);
 
-	/* Show '%' */
+  /* Show '%' */
   copyXPMArea (64, 81, 7, 7, 21, 34);
 
-   /* Show Meter */
+  /* Show Meter */
   k = percentage * 49 / 100;
 
-	/* Show rainbow battery bar */
-	copyXPMArea (66, 52, k, 9, 7, 21);
-	if (k % 2) copyXPMArea (66 + k - 1, 52, 1, 9, 7 + k - 1, 21);
+  /* Show rainbow battery bar */
+  copyXPMArea (66, 52, k, 9, 7, 21);
+  if (k % 2) copyXPMArea (66 + k - 1, 52, 1, 9, 7 + k - 1, 21);
   else copyXPMArea (66 + k, 52, 1, 9, 7 + k, 21);
 
 }
@@ -426,7 +424,7 @@ void message(void)
   printf("\nwmpower is a tool for checking and setting power management status for");
   printf("\nlaptop computers. Right now is supports both APM and APCI enabled");
   printf("\nkernels, plus direct access to toshiba laptops PM hardware.");
-	printf("\n\nUsage: wmpower [options]\n");
+  printf("\n\nUsage: wmpower [options]\n");
   printf("\n\nOptions:\n");
   printf("\t-no-meddling\t\tDon't manage power status, just show info.\n");
   printf("\t-no-full-battery\tDon't wait for 100%% battery before going back\n");
@@ -440,18 +438,19 @@ void message(void)
   printf("\t\t\t\twork as a daemon. For details go to\n");
   printf("\t\t\t\t<http://sourceforge.net/projects/lin-seti/>.\n");
   printf("\t-no-toshiba\t\tDisable direct access to toshiba hardware,\n");
-	printf("\t\t\t\tuse only generic ACPI/APM calls instead.\n");
-	printf("\t\t\t\tThis is recommended on newer toshibas.\n");
-	printf("\t-battery <num>\t\tMonitor your nth battery instead of first one.\n");
-	printf("\t-display <display>\tUse alternate display.\n");
-	printf("\t-l\t\t\tUse a low-color pixmap.\n");
-	printf("\t-L <LowLevel>\t\tDefine level at which yellow LED turns on.\n");
-	printf("\t-C <CriticalLevel>\tDefine level at which red LED turns on.\n");
+  printf("\t\t\t\tuse only generic ACPI/APM calls instead.\n");
+  printf("\t\t\t\tThis is recommended on newer toshibas.\n");
+  printf("\t-battery <num>\t\tMonitor your nth battery instead of first one.\n");
+  printf("\t-display <display>\tUse alternate display.\n");
+  printf("\t-l\t\t\tUse a low-color pixmap.\n");
+  printf("\t-L <LowLevel>\t\tDefine level at which yellow LED turns on.\n");
+  printf("\t-C <CriticalLevel>\tDefine level at which red LED turns on.\n");
   printf("\t-B <Volume>\t\tBeep at Critical Level (-100%% to 100%%).\n");
-	printf("\t-u <seconds>\t\tSet wmpower polling interval.\n");
-	printf("\t-h\t\t\tDisplay this help screen.\n");
+  printf("\t-u <seconds>\t\tSet wmpower polling interval.\n");
+  printf("\t-h\t\t\tDisplay this help screen.\n");
   printf("\nClicking on program window at run-time overrides any option,");
-  printf("\nthus switching between low-power and full-power modes.\n\n");
+  printf("\nthus switching between low-power and full-power modes.");
+  printf("\nYou can use the mouse wheel to adjust your lcd brightness.\n\n");
 
   exit(1);
 }
@@ -468,57 +467,57 @@ void ParseCMDLine (int argc, char *argv[])
   {
     cmdline = argv[i];
     if (cmdline[0] == '-')
-  	{
-	    switch (cmdline[1])
-	    {
-				case 'b':
-					if (!strcmp(cmdline, "-battery"))
-					{
-						if (argc == i+1) message();
-						our_battery = atoi(argv[++i]);
-						if (our_battery < 1) message();
-					}
-					else message();
-					break;
-	      case 'd':
-	        ++i;
-	        break;
-  	    case 'C':
-					if (cmdline[2] != '\0') message();
-					if (argc == i+1) message();
-	        CriticalLevel = atoi (argv[++i]);
-	        break;
-	      case 'L':
-					if (cmdline[2] != '\0') message();
-					if (argc == i+1) message();
-	        LowLevel = atoi (argv[++i]);
-  	      break;
-	      case 'l':
-					if (cmdline[2] != '\0') message();
-	        UseLowColorPixmap = 1;
-	        break;
-				case 'u':
-					if (cmdline[2] != '\0') message();
-					if (argc == i+1) message();
-					waittime = atoi (argv[++i]);
-					if (waittime <= 0) message();
-					fprintf(stderr, "Polling time: %d second%s.\n", waittime, (waittime == 1)? "" : "s");
-					break;
-  	    case 'B':
-					if (cmdline[2] != '\0') message();
-					if (argc == i+1) message();
-	        Beep = 1;
-          Volume = atoi (argv[++i]);
-	        break;
-        case 'n':
-          if (!strcmp(cmdline, "-no-meddling"))     {no_meddling = 1;             break;}
-          if (!strcmp(cmdline, "-no-full-battery")) {no_full_battery = 1;         break;}
-          if (!strcmp(cmdline, "-no-noflushd"))     {set_noflushd_use(0);         break;}
-          if (!strcmp(cmdline, "-no-lin-seti"))     {set_lin_seti_use(0);         break;}
-          if (!strcmp(cmdline, "-no-toshiba"))      {set_toshiba_hardware_use(0); break;}
-	      default:
-          message();
-	    }
-	  }
+    {
+      switch (cmdline[1])
+      {
+      case 'b':
+	if (!strcmp(cmdline, "-battery"))
+	{
+	  if (argc == i+1) message();
+	  our_battery = atoi(argv[++i]);
+	  if (our_battery < 1) message();
+	}
+	else message();
+	break;
+      case 'd':
+	++i;
+	break;
+      case 'C':
+	if (cmdline[2] != '\0') message();
+	if (argc == i+1) message();
+	CriticalLevel = atoi (argv[++i]);
+	break;
+      case 'L':
+	if (cmdline[2] != '\0') message();
+	if (argc == i+1) message();
+	LowLevel = atoi (argv[++i]);
+	break;
+      case 'l':
+	if (cmdline[2] != '\0') message();
+	UseLowColorPixmap = 1;
+	break;
+      case 'u':
+	if (cmdline[2] != '\0') message();
+	if (argc == i+1) message();
+	waittime = atoi (argv[++i]);
+	if (waittime <= 0) message();
+	fprintf(stderr, "Polling time: %d second%s.\n", waittime, (waittime == 1)? "" : "s");
+	break;
+      case 'B':
+	if (cmdline[2] != '\0') message();
+	if (argc == i+1) message();
+	Beep = 1;
+	Volume = atoi (argv[++i]);
+	break;
+      case 'n':
+	if (!strcmp(cmdline, "-no-meddling"))     {no_meddling = 1;             break;}
+	if (!strcmp(cmdline, "-no-full-battery")) {no_full_battery = 1;         break;}
+	if (!strcmp(cmdline, "-no-noflushd"))     {set_noflushd_use(0);         break;}
+	if (!strcmp(cmdline, "-no-lin-seti"))     {set_lin_seti_use(0);         break;}
+	if (!strcmp(cmdline, "-no-toshiba"))      {set_toshiba_hardware_use(0); break;}
+      default:
+	message();
+      }
+    }
   }
 }

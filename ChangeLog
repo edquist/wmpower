@@ -1,3 +1,17 @@
+wmpower 0.3.0 (22 October 2003):
+- Added machine id for Satellite Pro 6000
+- Added support for hardware manifatured by Compal
+  and used by vendors such as Acer, HP, Toshiba...
+  You probably need to patch to your kernel to
+  enable support for this. See file README.compal
+  for all details. Credits and a big thank you go to
+  Francisco Rodrigo Escobedo Robles <frer@pepix.net>
+  who contributed this code.
+- Added spec file for RPM creation, thanks (again) to
+  Francisco Rodrigo Escobedo Robles.
+- Yet another /proc file to read temperature from,
+  thanks to Masahide Matsumoto <masahide@masahide.dip.jp>
+
 wmpower 0.2.0 (30 September 2003):
 - Project moved to autoconf/automake tools
 - General code reorganization

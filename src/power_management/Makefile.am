@@ -1,6 +1,6 @@
 ## Makefile.am for wmpower/src
 
-INCLUDES =	-Iacpi -Iapm -Idell -Itoshiba -Ilib_utils
+INCLUDES =	-Iacpi -Iapm -Icompal -Idell -Itoshiba -Ilib_utils
 
 noinst_LIBRARIES = libpower.a
 
@@ -10,6 +10,8 @@ libpower_a_SOURCES = power_management.c \
 								acpi/libacpi.h \
 								apm/libapm.c \
 								apm/libapm.h \
+								compal/compal_lib.c \
+								compal/compal_lib.h \
 								dell/dell_lib.c \
 								dell/dell_lib.h \
 								toshiba/toshiba_lib.c \

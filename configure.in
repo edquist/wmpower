@@ -1,4 +1,4 @@
-AC_INIT(wmpower, 0.2.0, noberasco.gnu@disi.unige.it)
+AC_INIT(wmpower, 0.3.0, noberasco.gnu@disi.unige.it)
 AC_PREREQ(2.57)
 AC_CONFIG_SRCDIR(src/wmpower.c)
 AM_INIT_AUTOMAKE()
@@ -11,7 +11,7 @@ AC_PROG_RANLIB
 # Set my own flags for gcc
 if test "x$GCC" = "xyes"; then
 	CPULAGS=""
-	CFLAGS="-O3 -fomit-frame-pointer -pipe -fforce-addr -W -Wall"
+	CFLAGS="-O3 -fomit-frame-pointer -pipe -W -Wall"
 	GCC_TEST_MESSAGE="Checking for gcc version"
 	AC_MSG_CHECKING([$GCC_TEST_MESSAGE])
 	GCCVERSION="`$CC -dumpversion`"

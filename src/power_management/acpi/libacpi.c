@@ -295,11 +295,12 @@ void acpi_get_temperature(int *temperature, int *temp_is_celsius)
 
 	if (!(fp=fopen("/proc/acpi/thermal_zone/THRM/temperature", "r")))
 		if (!(fp=fopen("/proc/acpi/thermal_zone/THR2/temperature", "r")))
-		{
-			(*temperature)     = PM_Error;
-			(*temp_is_celsius) = PM_Error;
-			return;
-		}
+			if (!(fp=fopen("/proc/acpi/thermal_zone/ATF0/temperature", "r")))
+			{
+				(*temperature)     = PM_Error;
+				(*temp_is_celsius) = PM_Error;
+				return;
+			}
 	scan(fp, "%s%s%s", NULL, &temp, &unit);
 	fclose(fp);
 

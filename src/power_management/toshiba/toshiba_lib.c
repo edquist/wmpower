@@ -166,9 +166,9 @@ int acpi_set_lcd_brightness(int brightness)
 		fprintf(stderr, "toshiba_lib: current brightness is %d\n", current_brightness);
 	}
 
-	if (brightness == LCD_MAX) brightness = max_brightness;
-	if (brightness == LCD_MIN) brightness = 0;
-	if (brightness == LCD_MED) brightness = max_brightness/2;
+	if (brightness == TOSHIBA_LCD_MAX) brightness = max_brightness;
+	if (brightness == TOSHIBA_LCD_MIN) brightness = 0;
+	if (brightness == TOSHIBA_LCD_MED) brightness = max_brightness/2;
 	if (brightness == UP_ONE_STEP)
 	{
 		if (current_brightness < max_brightness) brightness = current_brightness + 1;
@@ -229,20 +229,20 @@ void hardware_set_lcd_brightness(int brightness)
 		  lcdtype = SCI_LCD_MAXBRIGHT;
 		  if (lcd>1) lcd = 1;
 	  }
-		fprintf(stderr, "toshiba_lib: min brightness is %d\n", LCD_MIN);
-		fprintf(stderr, "toshiba_lib: max brightness is %d\n", LCD_MAX);
+		fprintf(stderr, "toshiba_lib: min brightness is %d\n", TOSHIBA_LCD_MIN);
+		fprintf(stderr, "toshiba_lib: max brightness is %d\n", TOSHIBA_LCD_MAX);
 
     SciCloseInterface();
   }
 
 	if (brightness == UP_ONE_STEP)
 	{/* Right now this is broken... */
-	  /*if (current_brightness < LCD_MAX) lcd = current_brightness + 1;
+	  /*if (current_brightness < TOSHIBA_LCD_MAX) lcd = current_brightness + 1;
 		else*/ return;
 	}
 	if (brightness == DOWN_ONE_STEP)
 	{/* Right now this is broken... */
-	  /*if (current_brightness > LCD_MIN) lcd = current_brightness - 1;
+	  /*if (current_brightness > TOSHIBA_LCD_MIN) lcd = current_brightness - 1;
 		else */return;
 	}
 
@@ -374,6 +374,7 @@ int machine_is_toshiba(int *use_toshiba_hardware)
 		case 0xfc6d: strcpy(toshiba_model, "T1850C"); break;
 		case 0xfc6e: strcpy(toshiba_model, "T1850"); break;
 		case 0xfc6f: strcpy(toshiba_model, "T1800"); break;
+		case 0xfc71: strcpy(toshiba_model, "Satellite Pro 6000"); break;
 		case 0xfc72: strcpy(toshiba_model, "Satellite 1800"); break;
 		case 0xfc7e: strcpy(toshiba_model, "T4600C"); break;
 		case 0xfc7f: strcpy(toshiba_model, "T4600"); break;

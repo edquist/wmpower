@@ -1,0 +1,253 @@
+/***************************************************************************
+                        compal_lib.c  -  description
+                             -------------------
+    begin                : Oct 01 2003
+    copyright            : (C) 2003 by Francisco Rodrigo Escobedo Robles
+    e-mail               : frer@pepix.net
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.              *
+ *                                                                         *
+ ***************************************************************************/
+ 
+ /***************************************************************************
+       Many thanks to Soós Péter <sp@osb.hu> and the omke project team
+                   I could never have done this otherwise
+ ***************************************************************************/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <ctype.h>
+
+#include "compal_lib.h"
+#include "lib_utils.h"
+#include "power_management.h"
+
+
+
+/* gets a value from a strtok-ed buffer; for reading from /proc */
+char *getvaluefromhash (char *key, char *hash)
+{
+	char *value;
+	char *lastchar;
+
+
+	for ( ;
+		 NULL != hash && strcmp (key, hash) ;
+		 hash = strtok (NULL, ":\n"))
+		;
+
+	value = strtok (NULL, ":\n");
+
+	while (*value == ' ') ++value;
+
+	for (lastchar = value + strlen (value) ;
+		 *--lastchar == ' ' ;
+		 *lastchar = '\0')
+		 ;
+
+	return value;
+}
+
+
+
+int machine_is_compal (void)
+{
+	FILE *fp = fopen(COMPAL_PROC_FILE_DMI, "r");
+	char  buf [COMPAL_MAX_DMI_INFO + 1];
+	char *ptr;
+	char *vendor;
+	char *prodname;
+
+
+	if (!fp) return 0;
+
+	fread  (&buf, 1, COMPAL_MAX_DMI_INFO, fp);
+	fclose (fp);
+
+	/* always get the values in order! */
+	ptr      = strtok (buf, ":\n");
+	vendor   = getvaluefromhash ("System Vendor", ptr);
+	prodname = getvaluefromhash ("Product Name", ptr);
+	sprintf (compal_model, "%s %s", vendor, prodname);
+
+	return 1;
+}
+
+
+
+int compal_get_fan_status (void)
+{
+	FILE   *fp         = fopen (COMPAL_PROC_FILE_FAN, "r");
+	string  fan_status = NULL;
+	int     result     = 0;
+
+
+	if (!fp) return PM_Error;
+
+	scan   (fp, "%s%s%s", NULL, NULL, &fan_status);
+	fclose (fp);
+
+	if (fan_status)
+	{
+		if (!strcmp ("on", fan_status))
+		{
+			free (fan_status);
+			result++;
+		}
+	}
+
+	return result;
+}
+
+
+
+int compal_get_temperature (void)
+{
+	FILE   *fp     = fopen (COMPAL_PROC_FILE_TEMP, "r");
+	string  temp   = NULL;
+	int     result = PM_Error;
+
+
+	if (!fp) return PM_Error;
+
+	scan(fp, "%s%s%s%s", NULL, NULL, &temp, NULL);
+	fclose(fp);
+
+	if (temp)
+	{
+		result = atoi (temp);
+		free (temp);
+	}
+
+	return result;
+}
+
+
+
+int compal_get_lcd_brightness (void)
+{
+	FILE   *fp                 = fopen (COMPAL_PROC_FILE_LCD, "r");
+	string  current_brightness = NULL;
+	int     result             = PM_Error;
+
+
+	if (!fp) return PM_Error;
+
+	scan   (fp, "%s%s%s", NULL, NULL, &current_brightness);
+	fclose (fp);
+
+	if (current_brightness)
+	{
+		result = atoi (current_brightness);
+		free (current_brightness);
+	}
+
+	return result;
+}
+
+
+
+int compal_set_lcd_brightness (int brightness)
+{
+	FILE *fp = fopen (COMPAL_PROC_FILE_LCD, "w");
+
+
+	if (!fp) return PM_Error;
+
+	if ((brightness < COMPAL_LCD_MIN) || (brightness > COMPAL_LCD_MAX))
+		return PM_Error;
+
+	fprintf (fp, "%i", brightness);
+	fclose  (fp);
+	return 0;
+}
+
+
+
+void Compal_lcdBrightness_UpOneStep (void)
+{
+	compal_set_lcd_brightness (compal_get_lcd_brightness () + 1);
+}
+
+
+
+void Compal_lcdBrightness_DownOneStep (void)
+{
+	compal_set_lcd_brightness (compal_get_lcd_brightness () - 1);
+}
+
+
+
+int compal_get_battery_time (void)
+{
+	static time_t  prevtime          = 0;
+	static int     prevcapacity      = 0;
+	static int     prevstatus        = -1;
+	static int     prevdeltacapacity = 0;
+	static int     rtime             = 0;
+
+	FILE          *fp                = fopen(COMPAL_PROC_FILE_BATT, "r");
+	char           buf [COMPAL_MAX_DMI_INFO + 1];
+	char          *ptr;
+	int            rcapacity;
+	int            status; /* 1 if discharging */
+	int            fullcapacity;
+	time_t         deltatime;
+	int            deltacapacity;
+	float          prate;
+
+
+	if (!fp) return PM_Error;
+
+	fread (&buf, 1, COMPAL_MAX_BATT_INFO, fp);
+	fclose(fp);
+
+	/* always get the values in order! */
+	ptr          = strtok (buf, ":\n");
+	rcapacity    = atoi (getvaluefromhash ("Remaining Capacity", ptr));
+	fullcapacity = atoi (getvaluefromhash ("Last Full Capacity", ptr));
+	status       = tolower (getvaluefromhash ("Status", ptr) [0]) == 'd';
+
+	if (status != prevstatus)
+	{
+		prevtime     = time (NULL);
+		prevcapacity = rcapacity;
+		prevstatus   = status;
+		return 0;
+	}
+
+	deltatime     = difftime (time (NULL), prevtime);
+	deltacapacity = abs (prevcapacity - rcapacity);
+
+	if (deltacapacity == prevdeltacapacity)
+		return rtime;
+
+	prevdeltacapacity = deltacapacity;
+	prate = 60 * (float) ((float) deltacapacity / (float) deltatime);
+	if (status)
+		rtime = (float) ((float) rcapacity / (float) prate);
+	else
+		rtime = (float) ((float) (fullcapacity - rcapacity) / (float) prate);
+
+	if (rtime < 0) rtime = 0;
+
+	return rtime;
+}

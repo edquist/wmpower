@@ -4,7 +4,7 @@
     begin                : Feb 10 2003
     copyright            : (C) 2003 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
- ***************************************************************************/
+***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
@@ -35,11 +35,13 @@
 #include "libapm.h"
 #include "toshiba_lib.h"
 #include "dell_lib.h"
+#include "compal_lib.h"
 
 /* what kind of machine is running us? */
 #define UNKNOWN 0
 #define TOSHIBA 1
 #define DELL    2
+#define COMPAL  3
 int machine = UNKNOWN;
 
 int fast_charge_mode=0;
@@ -60,31 +62,38 @@ int fast_battery_charge(int toggle);
 
 int pm_support(int use_this_battery)
 {
-	Battery = use_this_battery;
+  Battery = use_this_battery;
 
   if (!use_noflushd) fprintf(stderr, "use of noflushd is disabled\n");
   if (!use_lin_seti) fprintf(stderr, "use of lin_seti is disabled\n");
 
-	/* check for specific hardware */
-	while (1)
-	{
-		/* is this a dell laptop? */
-		if (machine_is_dell())
-		{
-			machine = DELL;
-			fprintf(stderr, "detected DELL laptop\n");
-			break;
-		}
-	  /* Is this a Toshiba Laptop? */
-		if (machine_is_toshiba(&use_toshiba_hardware))
-		{
-			machine = TOSHIBA;
-			fprintf(stderr, "detected TOSHIBA laptop, %s\n", toshiba_model);
-			if (!use_toshiba_hardware) fprintf(stderr, "direct access to TOSHIBA hardware disabled\n");
-			break;
-		}
-		break;
-	}
+  /* check for specific hardware */
+  while (1)
+  {
+    /* is this a compal laptop? */
+    if (machine_is_compal())
+    {
+      machine = COMPAL;
+      fprintf(stderr, "detected Compal laptop, %s\n", compal_model);
+      break;
+    }
+    /* is this a dell laptop? */
+    if (machine_is_dell())
+    {
+      machine = DELL;
+      fprintf(stderr, "detected DELL laptop\n");
+      break;
+    }
+    /* Is this a Toshiba Laptop? */
+    if (machine_is_toshiba(&use_toshiba_hardware))
+    {
+      machine = TOSHIBA;
+      fprintf(stderr, "detected TOSHIBA laptop, %s\n", toshiba_model);
+      if (!use_toshiba_hardware) fprintf(stderr, "direct access to TOSHIBA hardware disabled\n");
+      break;
+    }
+    break;
+  }
 
   /* Is this an acpi system? */
   if (check_acpi())
@@ -96,32 +105,32 @@ int pm_support(int use_this_battery)
 
   /* Is this an APM system?  */
   if (apm_exists())
-	{
+  {
     pm_type= PM_APM;
     fprintf(stderr, "detected APM subsystem\n");
-		if (Battery != 1)
-		{
-			fprintf(stderr, "You must use ACPI to monitor any battery\n");
-			fprintf(stderr, "other than the first one. Cannot continue.\n");
-			exit(1);
-		}
+    if (Battery != 1)
+    {
+      fprintf(stderr, "You must use ACPI to monitor any battery\n");
+      fprintf(stderr, "other than the first one. Cannot continue.\n");
+      exit(1);
+    }
     return 1;
-	}
+  }
 
   fprintf(stderr, "No power management subsystem detected\n");
-	return 0;
+  return 0;
 }
 
 void get_power_status(pm_status *power_status)
 {
   /* Is this an ACPI system? */
-	if (pm_type == PM_ACPI)
-	{
-		static ACPIinfo  acpiinfo;
-		static ACADstate acadstate;
-		static ACPIstate acpistate;
+  if (pm_type == PM_ACPI)
+  {
+    static ACPIinfo  acpiinfo;
+    static ACADstate acadstate;
+    static ACPIstate acpistate;
 
-		read_acpi_info(&acpiinfo, Battery - 1);
+    read_acpi_info(&acpiinfo, Battery - 1);
     read_acpi_state(&acpistate, &acpiinfo, Battery - 1);
     read_acad_state(&acadstate);
 
@@ -132,108 +141,125 @@ void get_power_status(pm_status *power_status)
     if (acpistate.state == CHARGING) power_status->battery_charging=1;
     else power_status->battery_charging=0;
 
-		/* Check battery time and percentage */
+    /* Check battery time and percentage */
+    if (machine == COMPAL) acpistate.rtime = compal_get_battery_time();
     power_status->battery_time = acpistate.rtime;
     power_status->battery_percentage = acpistate.percentage;
-		if (power_status->battery_percentage > 100) power_status->battery_percentage = 100;
-		battery_percentage = power_status->battery_percentage;
+    if (power_status->battery_percentage > 100) power_status->battery_percentage = 100;
+    battery_percentage = power_status->battery_percentage;
 
     /* Check if battery is plugged in */
-		battery_present = power_status->battery_present = acpistate.present;
+    battery_present = power_status->battery_present = acpistate.present;
 
-	  /* Get temperature and fan status */
-		power_status->fan_status=get_fan_status();
-	  get_temperature(&(power_status->temperature), &(power_status->temp_is_celsius));
+    /* Get temperature and fan status */
+    power_status->fan_status=get_fan_status();
+    get_temperature(&(power_status->temperature), &(power_status->temp_is_celsius));
 
     if (fast_charge_mode && (power_status->battery_percentage == 100)) fast_battery_charge(0);
 
-		return;
+    return;
   }
 
-	/* Is this an APM system? */
-	if (pm_type == PM_APM)
-	{
-	  struct_apm_data apm_data;
+  /* Is this an APM system? */
+  if (pm_type == PM_APM)
+  {
+    struct_apm_data apm_data;
 
-  	if (!apm_read(&apm_data))
-	  {
-			fprintf(stderr, "Could not read APM info!\n");
-			return;
+    if (!apm_read(&apm_data))
+    {
+      fprintf(stderr, "Could not read APM info!\n");
+      return;
 
-  	}
-		ac_on_line = power_status->ac_on_line = apm_data.ac_line_status;
-  	if ( apm_data.battery_percentage == -1)
-	  {
-  	  battery_present = power_status->battery_present = 0;
-    	battery_percentage = power_status->battery_percentage = 0;
-  	}
-	  else
-  	{
-    	battery_present = power_status->battery_present = 1;
-	    power_status->battery_percentage = apm_data.battery_percentage;
-			if (power_status->battery_percentage > 100) power_status->battery_percentage = 100;
-			battery_percentage = power_status->battery_percentage;
-	  }
-  	if ( (int)(apm_data.battery_status) == 3)
-    	power_status->battery_charging=1;
-	  else power_status->battery_charging=0;
-  	power_status->battery_time = (apm_data.using_minutes) ? apm_data.battery_time : apm_data.battery_time / 60;
-	  power_status->fan_status=get_fan_status();
-  	get_temperature(&(power_status->temperature), &(power_status->temp_is_celsius));
+    }
+    ac_on_line = power_status->ac_on_line = apm_data.ac_line_status;
+    if ( apm_data.battery_percentage == -1)
+    {
+      battery_present = power_status->battery_present = 0;
+      battery_percentage = power_status->battery_percentage = 0;
+    }
+    else
+    {
+      battery_present = power_status->battery_present = 1;
+      power_status->battery_percentage = apm_data.battery_percentage;
+      if (power_status->battery_percentage > 100) power_status->battery_percentage = 100;
+      battery_percentage = power_status->battery_percentage;
+    }
+    if ( (int)(apm_data.battery_status) == 3)
+      power_status->battery_charging=1;
+    else power_status->battery_charging=0;
+    power_status->battery_time = (apm_data.using_minutes) ? apm_data.battery_time : apm_data.battery_time / 60;
+    power_status->fan_status=get_fan_status();
+    get_temperature(&(power_status->temperature), &(power_status->temp_is_celsius));
 
-  	if (fast_charge_mode && (power_status->battery_percentage == 100)) fast_battery_charge(0);
+    if (fast_charge_mode && (power_status->battery_percentage == 100)) fast_battery_charge(0);
 
-		return;
-	}
+    return;
+  }
 }
 
 int get_fan_status(void)
 {
-	if (machine == DELL) return dell_get_fan_status();
-	if (machine == TOSHIBA) return toshiba_get_fan_status(use_toshiba_hardware);
+  if (machine == COMPAL) return compal_get_fan_status();
+  if (machine == DELL) return dell_get_fan_status();
+  if (machine == TOSHIBA) return toshiba_get_fan_status(use_toshiba_hardware);
 
-	return PM_Error;
+  return PM_Error;
 }
 
 
 void get_temperature(int *temperature, int *temp_is_celsius)
 {
-	/* for Dell laptops... */
-	if (machine == DELL)
-	{
-		int result = dell_get_temperature();
-		if (result == PM_Error)
-		{
-			(*temperature)     = PM_Error;
-			(*temp_is_celsius) = PM_Error;
-			return;
-		}
-		(*temperature)     = result;
-		(*temp_is_celsius) = 1;
-		return;
-	}
+  /* for Compal laptops... */
+  if (machine == COMPAL)
+  {
+    int result = compal_get_temperature();
+    if (result == PM_Error)
+    {
+      (*temperature)     = PM_Error;
+      (*temp_is_celsius) = PM_Error;
+      return;
+    }
+    (*temperature)     = result;
+    (*temp_is_celsius) = 1;
+    return;
+  }
 
-	/* Not a DELL */
-	if (pm_type == PM_ACPI)
-	{
-		acpi_get_temperature(temperature, temp_is_celsius);
-		return;
-	}
+  /* for Dell laptops... */
+  if (machine == DELL)
+  {
+    int result = dell_get_temperature();
+    if (result == PM_Error)
+    {
+      (*temperature)     = PM_Error;
+      (*temp_is_celsius) = PM_Error;
+      return;
+    }
+    (*temperature)     = result;
+    (*temp_is_celsius) = 1;
+    return;
+  }
 
-	/* No ACPI */
-	(*temperature)     = PM_Error;
-	(*temp_is_celsius) = PM_Error;
+  /* No special hardware... */
+  if (pm_type == PM_ACPI)
+  {
+    acpi_get_temperature(temperature, temp_is_celsius);
+    return;
+  }
+
+  /* No ACPI */
+  (*temperature)     = PM_Error;
+  (*temp_is_celsius) = PM_Error;
 }
 
 
 void internal_set_pm_features(int ac_status)
 {
   static int seti_status = 0;
-	static int noflushd    = 0;
+  static int noflushd    = 0;
 
   if (fast_charge_mode) ac_status=0;
-	if (ac_status)
-	{ /* we are on AC power */
+  if (ac_status)
+  { /* we are on AC power */
     /* Stop noflushd damon (disable HD spindown) */
     if (use_noflushd && noflushd)
     {
@@ -246,20 +272,25 @@ void internal_set_pm_features(int ac_status)
       system("/etc/init.d/lin-seti start >/dev/null 2>/dev/null");
       seti_status = 1;
     }
-		if (machine == TOSHIBA)
+    if (machine == COMPAL)
     {
       /* Set LCD to maximum brightness */
-      toshiba_set_lcd_brightness(LCD_MAX, use_toshiba_hardware);
+      compal_set_lcd_brightness(COMPAL_LCD_MAX);
+    }
+    if (machine == TOSHIBA)
+    {
+      /* Set LCD to maximum brightness */
+      toshiba_set_lcd_brightness(TOSHIBA_LCD_MAX, use_toshiba_hardware);
       /* Start fan */
       if (use_toshiba_hardware && (pm_type != PM_ACPI)) toshiba_set_fan_status(1);
-			return;
+      return;
     }
-		if (pm_type == PM_ACPI)
-	  {
-  	  /* Set generic ACPI features here... */
-    	return;
-  	}
-	}
+    if (pm_type == PM_ACPI)
+    {
+      /* Set generic ACPI features here... */
+      return;
+    }
+  }
   else
   { /* we are on battery power */
     if (use_noflushd && !noflushd)
@@ -274,19 +305,24 @@ void internal_set_pm_features(int ac_status)
       system("/etc/init.d/lin-seti stop >/dev/null 2>/dev/null");
       seti_status = 0;
     }
-		if (machine == TOSHIBA)
+    if (machine == COMPAL)
+    {
+      /* Set LCD to maximum brightness */
+      compal_set_lcd_brightness(COMPAL_LCD_MIN);
+    }
+    if (machine == TOSHIBA)
     {
       /* Set LCD to minimum brightness */
-      toshiba_set_lcd_brightness(LCD_MIN, use_toshiba_hardware);
+      toshiba_set_lcd_brightness(TOSHIBA_LCD_MIN, use_toshiba_hardware);
       /* Stop fan */
       if (use_toshiba_hardware && (pm_type != PM_ACPI)) toshiba_set_fan_status(0);
-			return;
+      return;
     }
-		if (pm_type == PM_ACPI)
-		{
-  	  /* Set generic ACPI features here... */
-    	return;
-		}
+    if (pm_type == PM_ACPI)
+    {
+      /* Set generic ACPI features here... */
+      return;
+    }
   }
 
 }
@@ -294,13 +330,13 @@ void internal_set_pm_features(int ac_status)
 
 void set_pm_features(void)
 {
-	static int old_value = -1;
+  static int old_value = -1;
 
-	if (ac_on_line != old_value)
-	{
-  	internal_set_pm_features(ac_on_line);
-		old_value = ac_on_line;
-	}
+  if (ac_on_line != old_value)
+  {
+    internal_set_pm_features(ac_on_line);
+    old_value = ac_on_line;
+  }
 
 }
 
@@ -365,11 +401,13 @@ void set_toshiba_hardware_use(int toggle)
 
 void lcdBrightness_UpOneStep()
 {
-	if (machine == TOSHIBA) Toshiba_lcdBrightness_UpOneStep(use_toshiba_hardware);
+  if (machine == COMPAL)  Compal_lcdBrightness_UpOneStep();
+  if (machine == TOSHIBA) Toshiba_lcdBrightness_UpOneStep(use_toshiba_hardware);
 }
 
 
 void lcdBrightness_DownOneStep()
 {
-	if (machine == TOSHIBA) Toshiba_lcdBrightness_DownOneStep(use_toshiba_hardware);
+  if (machine == COMPAL)  Compal_lcdBrightness_DownOneStep();
+  if (machine == TOSHIBA) Toshiba_lcdBrightness_DownOneStep(use_toshiba_hardware);
 }

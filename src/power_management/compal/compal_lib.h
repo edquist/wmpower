@@ -1,9 +1,9 @@
 /***************************************************************************
-                        toshiba_lib.h  -  description
+                        compal_lib.h  -  description
                              -------------------
-    begin                : Feb 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : 2001s098@educ.disi.unige.it
+    begin                : Oct 01 2003
+    copyright            : (C) 2003 by Francisco Rodrigo Escobedo Robles
+    e-mail               : frer@pepix.net
  ***************************************************************************/
 
 /***************************************************************************
@@ -26,19 +26,33 @@
  ***************************************************************************/
  
  /***************************************************************************
-    Many thanks to Jonathan A. Buzzard for his Toshiba(tm) Linux Utilities
+       Many thanks to Soós Péter <sp@osb.hu> and the omke project team
                    I could never have done this otherwise
  ***************************************************************************/
 
-#define TOSHIBA_LCD_MIN 0
-#define TOSHIBA_LCD_MED 1
-#define TOSHIBA_LCD_MAX 2
 
-char toshiba_model[255];
+#define COMPAL_LCD_MIN  	0
+#define COMPAL_LCD_MAX 		10
+#define COMPAL_MAX_DMI_INFO	1000
+#define COMPAL_MAX_BATT_INFO	1000
+#define COMPAL_MAX_MODEL_INFO	255
 
-int machine_is_toshiba(int *use_toshiba_hardware);
-int toshiba_get_fan_status(int use_toshiba_hardware);
-void toshiba_set_fan_status(int status);
-void toshiba_set_lcd_brightness(int brightness, int allow_hardware_call);
-void Toshiba_lcdBrightness_UpOneStep(int allow_hardware_call);
-void Toshiba_lcdBrightness_DownOneStep(int allow_hardware_call);
+#define COMPAL_PROC_FILE_DMI	"/proc/omnibook/dmi"
+#define COMPAL_PROC_FILE_FAN	"/proc/omnibook/fan"
+#define COMPAL_PROC_FILE_TEMP	"/proc/omnibook/temperature"
+#define COMPAL_PROC_FILE_LCD	"/proc/omnibook/lcd"
+#define COMPAL_PROC_FILE_BATT	"/proc/omnibook/battery"
+
+
+char  compal_model[COMPAL_MAX_MODEL_INFO];
+
+char *getvaluefromhash (char *key, char *hash);
+
+int   machine_is_compal(void);
+int   compal_get_fan_status(void);
+int   compal_get_temperature(void);
+int   compal_get_lcd_brightness(void);
+int   compal_set_lcd_brightness(int brightness);
+void  Compal_lcdBrightness_UpOneStep(void);
+void  Compal_lcdBrightness_DownOneStep(void);
+int   compal_get_battery_time(void);

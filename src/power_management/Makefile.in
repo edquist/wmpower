@@ -76,7 +76,7 @@ am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
 
-INCLUDES = -Iacpi -Iapm -Idell -Itoshiba -Ilib_utils
+INCLUDES = -Iacpi -Iapm -Icompal -Idell -Itoshiba -Ilib_utils
 
 noinst_LIBRARIES = libpower.a
 
@@ -86,6 +86,8 @@ libpower_a_SOURCES = power_management.c \
 								acpi/libacpi.h \
 								apm/libapm.c \
 								apm/libapm.h \
+								compal/compal_lib.c \
+								compal/compal_lib.h \
 								dell/dell_lib.c \
 								dell/dell_lib.h \
 								toshiba/toshiba_lib.c \
@@ -105,8 +107,9 @@ LIBRARIES = $(noinst_LIBRARIES)
 libpower_a_AR = $(AR) cru
 libpower_a_LIBADD =
 am_libpower_a_OBJECTS = power_management.$(OBJEXT) libacpi.$(OBJEXT) \
-	libapm.$(OBJEXT) dell_lib.$(OBJEXT) toshiba_lib.$(OBJEXT) \
-	hci.$(OBJEXT) sci.$(OBJEXT) lib_utils.$(OBJEXT)
+	libapm.$(OBJEXT) compal_lib.$(OBJEXT) dell_lib.$(OBJEXT) \
+	toshiba_lib.$(OBJEXT) hci.$(OBJEXT) sci.$(OBJEXT) \
+	lib_utils.$(OBJEXT)
 libpower_a_OBJECTS = $(am_libpower_a_OBJECTS)
 
 DEFS = @DEFS@
@@ -116,7 +119,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/dell_lib.Po ./$(DEPDIR)/hci.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/compal_lib.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dell_lib.Po ./$(DEPDIR)/hci.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/lib_utils.Po ./$(DEPDIR)/libacpi.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libapm.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/power_management.Po ./$(DEPDIR)/sci.Po \
@@ -146,6 +150,7 @@ clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 libacpi.$(OBJEXT): acpi/libacpi.c
 libapm.$(OBJEXT): apm/libapm.c
+compal_lib.$(OBJEXT): compal/compal_lib.c
 dell_lib.$(OBJEXT): dell/dell_lib.c
 toshiba_lib.$(OBJEXT): toshiba/toshiba_lib.c
 hci.$(OBJEXT): toshiba/hci.c
@@ -162,6 +167,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/compal_lib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dell_lib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hci.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lib_utils.Po@am__quote@
@@ -209,6 +215,18 @@ libapm.obj: apm/libapm.c
 @AMDEP_TRUE@	depfile='$(DEPDIR)/libapm.Po' tmpdepfile='$(DEPDIR)/libapm.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libapm.obj `cygpath -w apm/libapm.c`
+
+compal_lib.o: compal/compal_lib.c
+@AMDEP_TRUE@	source='compal/compal_lib.c' object='compal_lib.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/compal_lib.Po' tmpdepfile='$(DEPDIR)/compal_lib.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o compal_lib.o `test -f 'compal/compal_lib.c' || echo '$(srcdir)/'`compal/compal_lib.c
+
+compal_lib.obj: compal/compal_lib.c
+@AMDEP_TRUE@	source='compal/compal_lib.c' object='compal_lib.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@	depfile='$(DEPDIR)/compal_lib.Po' tmpdepfile='$(DEPDIR)/compal_lib.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o compal_lib.obj `cygpath -w compal/compal_lib.c`
 
 dell_lib.o: dell/dell_lib.c
 @AMDEP_TRUE@	source='dell/dell_lib.c' object='dell_lib.o' libtool=no @AMDEPBACKSLASH@

@@ -76,6 +76,18 @@ am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
 SUBDIRS = src
+
+EXTRA_DIST = \
+	AUTHORS \
+	COPYING \
+	ChangeLog \
+	INSTALL \
+	LEGGIMI \
+	NEWS \
+	README \
+	README.compal \
+	wmpower.spec
+
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
