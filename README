@@ -24,9 +24,6 @@ Features:
 ----------------------------------------------------------------------
 
 Installation:
-- edit Makefile: I don't think everyone out there has got a i686
-                 CPU... so adjust 'CPUTYPE' in there to suit your
-                 needs.
 - make
 - make install
 

@@ -12,7 +12,7 @@ Punti di forza:
 - Sono supportati sia kernel APM che APCI;
 - Sui kernel ACPI visualizza anche lo stato della ventola
   e la temperatura della zona processore;
-- Acceso diretto all'hardware Toshiba: potete vedere e
+- Accesso diretto all'hardware Toshiba: potete vedere e
   settare stato della ventola e luminosità del display
   anche senza un kernel ACPI;
 - Quanto il sistema è alimentato a batterie, wmpower può
@@ -30,9 +30,6 @@ Punti di forza:
 ----------------------------------------------------------------------
 
 Installazione:
-- modificate il file Makefile: non penso che tutti usino una CPU
-                i686... regolate il valore di 'CPUTYPE' sul vostro
-                computer.
 - make
 - make install
 

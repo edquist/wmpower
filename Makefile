@@ -62,7 +62,9 @@ ifeq "$(findstring gcc,$(shell $(CC) --version))" "gcc"
 		endif	
 	endif
 endif	
-CFLAGS = $(CPUFLAG) -O3 -pipe -fforce-addr -W -Wall -pedantic
+ifndef CFLAGS
+  CFLAGS = $(CPUFLAG) -O3 -pipe -fforce-addr -W -Wall -pedantic
+endif  
 
 .c.o: 
 	$(CC) -D$(shell echo `uname -s`) $(CFLAGS) -c $< -o $*.o $(INCDIR)

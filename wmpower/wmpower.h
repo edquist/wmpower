@@ -30,4 +30,4 @@
                    it's code was the base for this program
  ***************************************************************************/
 
-#define WMPOWER_VERSION "0.1.1"
+#define WMPOWER_VERSION "0.1.2"
