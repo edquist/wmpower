@@ -24,6 +24,7 @@ Features:
   the brightness of your lcd screen.
 - Support for Dell laptops for temperature and fan status
 - Support for Compal hardware (see README.compal)
+- CPU frequency scaling support
 
 ----------------------------------------------------------------------
 

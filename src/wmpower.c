@@ -2,7 +2,7 @@
                           wmpower.c  -  description
                              -------------------
     begin                : Feb 10 2003
-    copyright            : (C) 2003,2004 by Noberasco Michele
+    copyright            : (C) 2003,2004,2005 by Noberasco Michele
     e-mail               : noberasco.gnu@disi.unige.it
 ***************************************************************************/
 
@@ -38,6 +38,7 @@
 #include <X11/X.h>
 #include <X11/xpm.h>
 
+#include "open_syslog_on_stderr.h"
 #include "power_management.h"
 #include "dockapp.h"
 #include "wmpower_master.xpm"
@@ -53,18 +54,17 @@ void ShowBatteryTime(int time, int percentage);
 void ShowBatteryPercentage(int percentage);
 void ShowBatteryLed(int present, int percentage, int ac_on_line);
 
-int no_meddling = 0;       /* Should we stop managing power status?        */
+int no_meddling     = 0;   /* Should we stop managing power status?        */
 int no_full_battery = 0;   /* Should we always use max power when plugged? */
 
-int CriticalLevel = 10;    /* Battery critical level */
-int LowLevel      = 40;    /* Battery low level      */
+int CriticalLevel   = 10;  /* Battery critical level */
+int LowLevel        = 40;  /* Battery low level      */
 
 #define CMDLINELEN 512
 int WarnTime = 2;          /* When to execute the warn command */
 char WarnCommand[CMDLINELEN] = ""; /* The warn command to execute      */
 
-float BlinkRate  = 3.00;   /* blinks per second      */
-int waittime     = 0;      /* /proc polling interval */
+float BlinkRate = 3.00;    /* blinks per second      */
 
 /* Controls beeping when you get to critical   */
 /* battery level: Off by default               */
@@ -92,13 +92,17 @@ int main (int argc, char *argv[])
   struct timespec delay;     /* pause between interface updates */
   char Command[CMDLINELEN+3];
   int warned = 0;
-
+	
   delay.tv_sec  = 0;
   delay.tv_nsec = 500000000;
 
   BlinkRate = (BlinkRate >= 0.0) ? BlinkRate : -1.0 * BlinkRate;
+	waittime  = 0;       /* /proc polling interval */
 
   fprintf(stderr, "\nWelcome to wmpower version %s...\n", VERSION);
+
+	cpufreq_online_governor  = NULL;
+	cpufreq_offline_governor = NULL;
 
   /* Parse any command line arguments. */
   ParseCMDLine (argc, argv);
@@ -106,7 +110,7 @@ int main (int argc, char *argv[])
   /*  Check for Power Management support  */
   if (!pm_support(our_battery))
   {
-    fprintf (stderr, "\nwmpower: No power management support...\n");
+    fprintf (stderr, "\nNo power management support...\n");
     return EXIT_FAILURE;
   }
 
@@ -160,14 +164,14 @@ int main (int argc, char *argv[])
 
     /* Execute the warning command, if needed */
     if (WarnCommand && *WarnCommand && !power_status.ac_on_line && !warned
-				&& power_status.battery_time <= WarnTime) {
+				&& power_status.battery_time <= WarnTime)
+		{
 			warned = 1;
 			sprintf(Command, "%s &", WarnCommand);
 			system(Command);
     }
-    if (power_status.ac_on_line) {
+    if (power_status.ac_on_line)
       warned = 0;
-    }
 
     /* Show AC status led */
     ShowACstatus(power_status.ac_on_line);
@@ -200,20 +204,26 @@ int main (int argc, char *argv[])
 					RedrawWindow ();
 					break;
 				case ButtonPress:
+					if (no_meddling)
+					{
+						fprintf(stderr, "You cannot change PM status in '-no-meddling' mode of operation\n");
+						continue;
+					}
 					if (event.xbutton.button == wheel_button_up)
 					{
 						lcdBrightness_UpOneStep();
-						break;
+						continue;
 					}
 					if (event.xbutton.button == wheel_button_down)
 					{
 						lcdBrightness_DownOneStep();
-						break;
+						continue;
 					}
 					if (fast_battery_charge(fbc_toggle) == fbc_toggle)
 					{
 						fbc_toggle = !fbc_toggle;
 						fbc_auto = 0;
+						continue;
 					}
 					break;
 				case ButtonRelease:
@@ -371,7 +381,7 @@ void ShowBatteryTime(int time, int percentage)
   /* Now we are sure battery time is consistent */
   if (percentage == 100) battery_time = 0;
   hour = battery_time / 60;
-  min = battery_time % 60;
+  min  = battery_time % 60;
 
   /* Show 10's (hour) */
   copyXPMArea ((hour / 10) * 7 + 5, 93, 7, 9, 21, 7);
@@ -443,6 +453,7 @@ void message(void)
   printf("\t-no-meddling\t\tDon't manage power status, just show info.\n");
   printf("\t-no-full-battery\tDon't wait for 100%% battery before going back\n");
   printf("\t\t\t\tto full power.\n");
+  printf("\t-no-cpufreq\t\tDon't scale CPU frequency according to power status.\n");
   printf("\t-no-noflushd\t\tDisable use of \"noflushd\" daemon:\n");
   printf("\t\t\t\tnoflushd is a tool for managing spin-down\n");
   printf("\t\t\t\tof hard disks after a certain amount of time\n");
@@ -456,13 +467,17 @@ void message(void)
   printf("\t\t\t\tThis is recommended on newer toshibas.\n");
   printf("\t-battery <num>\t\tMonitor your nth battery instead of first one.\n");
   printf("\t-display <display>\tUse alternate display.\n");
+  printf("\t-geometry <geometry>\twmpower window geometry.\n");
   printf("\t-l\t\t\tUse a low-color pixmap.\n");
   printf("\t-L <LowLevel>\t\tDefine level at which yellow LED turns on.\n");
   printf("\t-C <CriticalLevel>\tDefine level at which red LED turns on.\n");
   printf("\t-B <Volume>\t\tBeep at Critical Level (-100%% to 100%%).\n");
-  printf("\t-w <command>\t\tWarn command to run when the remaining is low.\n");
+  printf("\t-w <command>\t\tWarn command to run when remaining time is low.\n");
   printf("\t-W <minutes>\t\tMinutes of remaining time when to run warn command.\n");
   printf("\t-u <seconds>\t\tSet wmpower polling interval.\n");
+  printf("\t-g <governor>\t\tUse this CPUFreq scaling governor while running on battery power.\n");
+  printf("\t-G <governor>\t\tUse this CPUFreq scaling governor while running on AC power.\n");
+  printf("\t-s\t\t\tMake wmpower log to syslog instead of standard error.\n");
   printf("\t-h\t\t\tDisplay this help screen.\n");
   printf("\nClicking on program window at run-time overrides any option,");
   printf("\nthus switching between low-power and full-power modes.");
@@ -470,7 +485,6 @@ void message(void)
 
   exit(EXIT_FAILURE);
 }
-
 
 
 /* Parse command line arguments */
@@ -502,6 +516,21 @@ void ParseCMDLine (int argc, char *argv[])
 					if (cmdline[2] != '\0') message();
 					if (argc == i+1) message();
 					CriticalLevel = atoi (argv[++i]);
+					break;
+				case 'g':
+					if ( !strcmp(cmdline, "-geometry"))
+					{
+						extern char *Geometry;
+						if ( argc == i+1 ) message();
+						Geometry = argv[++i];
+						break;
+					}
+					if (cmdline[2] != '\0') message();
+					cpufreq_offline_governor = argv[++i];
+					break;
+				case 'G':
+					if (cmdline[2] != '\0') message();
+					cpufreq_online_governor = argv[++i];
 					break;
 				case 'L':
 					if (cmdline[2] != '\0') message();
@@ -535,12 +564,18 @@ void ParseCMDLine (int argc, char *argv[])
 					if (argc == i+1) message();
 					WarnTime = atoi (argv[++i]);
 					break;
+				case 's':
+					if (cmdline[2] != '\0') message();
+					fprintf(stderr, "Switching to syslog logging...\n");
+					open_syslog_on_stderr();
+					break;
 				case 'n':
 					if (!strcmp(cmdline, "-no-meddling"))     {no_meddling = 1;             break;}
 					if (!strcmp(cmdline, "-no-full-battery")) {no_full_battery = 1;         break;}
 					if (!strcmp(cmdline, "-no-noflushd"))     {set_noflushd_use(0);         break;}
 					if (!strcmp(cmdline, "-no-lin-seti"))     {set_lin_seti_use(0);         break;}
 					if (!strcmp(cmdline, "-no-toshiba"))      {set_toshiba_hardware_use(0); break;}
+					if (!strcmp(cmdline, "-no-cpufreq"))      {set_cpufreq_use(0);          break;}
 				default:
 					message();
       }

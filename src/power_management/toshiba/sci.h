@@ -11,6 +11,9 @@
  *   not to make any modifications and use it as it stands.
  *
  * $Log: sci.h,v $
+ * Revision 1.2  2004/03/27 12:59:15  noberasco
+ * see CL
+ *
  * Revision 1.1  2003/09/18 16:38:27  noberasco
  * overhaul III
  *
@@ -78,7 +81,11 @@
 extern "C" {
 #endif
 
+#ifndef LINUX_TOSHIBA_H
+#define LINUX_TOSHIBA_H
 #include<linux/toshiba.h>
+#endif 
+
 
 /*
  * the different modes that can be changed

@@ -46,7 +46,9 @@
 #include <dirent.h>
 
 #ifdef __GLIBC__
+#ifdef X86
 #include <sys/perm.h>
+#endif
 #endif
 
 #include "hci.h"

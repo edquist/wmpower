@@ -30,6 +30,7 @@
  ***************************************************************************/
 
 #define MAXBATT 8
+#define MAXFANS 8
 
 typedef enum
 {
@@ -77,8 +78,9 @@ ACADstate;
 /* number of batteries detected */
 int batt_count;
 
-int check_acpi (void);
+int  check_acpi (void);
 void read_acad_state (ACADstate *acadstate);
 void read_acpi_info (ACPIinfo *acpiinfo, int battery);
 void read_acpi_state (ACPIstate *acpistate, ACPIinfo *acpiinfo, int battery);
 void acpi_get_temperature(int *temperature, int *temp_is_celsius);
+int  acpi_get_fan_status(void);

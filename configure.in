@@ -1,4 +1,4 @@
-AC_INIT([wmpower],[0.3.1],[noberasco.gnu@disi.unige.it])
+AC_INIT([wmpower],[0.4.0],[s4t4n@gentoo.org])
 AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR(src/wmpower.c)
 AM_INIT_AUTOMAKE([1.7 check-news dist-bzip2])
@@ -43,6 +43,10 @@ AC_PROG_RANLIB
 				if test "`echo $PROCESSOR | grep \"Intel(R) Pentium(R) 4\"`" != ""; then
 					CPUFLAGS="-march=pentium4"
 				fi
+				#K6 processor
+				if test "`echo $PROCESSOR | grep \"AMD-K6(tm)\"`" != ""; then
+				  CPUFLAGS="-march=k6"
+				fi
 				#Athlon processors
 				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm)\"`" != ""; then
 				  CPUFLAGS="-march=athlon"
@@ -52,6 +56,9 @@ AC_PROG_RANLIB
 				fi
 				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) XP\"`" != ""; then
 				  CPUFLAGS="-march=athlon-xp"
+				fi
+				if test "`echo $PROCESSOR | grep \"AMD Athlon(tm) 64\"`" != ""; then
+				   CPUFLAGS="-march=athlon64"
 				fi
 				#Is our CPU an Ultra Sparc?
 				if test "`echo $PROCESSOR | grep \"UltraSparc\"`" != ""; then
@@ -74,13 +81,29 @@ AC_PROG_RANLIB
 	fi
 # End of setting suctom flags for gcc
 
+# Check wether we are x86 or not
+	AC_MSG_CHECKING([for machine class])
+	X86=""
+	HW=`uname -m`
+	if test "`echo $HW | grep \"86\"`" != ""; then
+		X86="1"
+	fi
+	AC_SUBST(X86)
+	AC_MSG_RESULT([$HW])
+# End check for x86 hardware
+
 # Check for C headers
-	HEADERS="stdio.h stdlib.h stdarg.h string.h time.h unistd.h ctype.h pwd.h sys/types.h \
+	HEADERS="stdio.h stdlib.h stdarg.h string.h syslog.h time.h unistd.h ctype.h pwd.h sys/types.h \
 	fcntl.h sys/stat.h sys/ioctl.h envz.h X11/X.h X11/Xlib.h X11/xpm.h X11/extensions/shape.h"
 	HEADERS_ERROR_MESSAGE="One or more system headers that are necessary to compile this program are missing on this system. Cannot continue."
 	AC_CHECK_HEADERS([$HEADERS],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])],)
 	AC_HEADER_DIRENT
 # End check for C headers
+
+# Check wether we can spawn new threads
+	AC_CHECK_HEADERS([pthread.h],,[AC_MSG_ERROR([$HEADERS_ERROR_MESSAGE])],)
+	AC_CHECK_LIB(pthread, pthread_create, , , )
+# end threads check
 
 AC_CONFIG_FILES([Makefile 
 	src/Makefile

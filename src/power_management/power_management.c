@@ -2,7 +2,7 @@
                       power_management.c  -  description
                              -------------------
     begin                : Feb 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2003-2005 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
 ***************************************************************************/
 
@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "lib_utils.h"
 #include "power_management.h"
@@ -36,6 +37,7 @@
 #include "toshiba_lib.h"
 #include "dell_lib.h"
 #include "compal_lib.h"
+#include "cpufreq.h"
 
 /* what kind of machine is running us? */
 #define UNKNOWN 0
@@ -52,6 +54,7 @@ int battery_percentage;
 int battery_present;
 int use_lin_seti=1;
 int use_noflushd=1;
+int use_cpufreq=1;
 
 /* Battery to monitor */
 int Battery;
@@ -59,6 +62,9 @@ int Battery;
 int get_fan_status();
 void get_temperature(int *temperature, int *temp_is_celsius);
 int fast_battery_charge(int toggle);
+int calculate_battery_time(int battery_percentage, int ac_on_line);
+kernel_versions Get_Kernel_version(void);
+
 
 int pm_support(int use_this_battery)
 {
@@ -66,6 +72,10 @@ int pm_support(int use_this_battery)
 
   if (!use_noflushd) fprintf(stderr, "use of noflushd is disabled\n");
   if (!use_lin_seti) fprintf(stderr, "use of lin_seti is disabled\n");
+	if (!use_cpufreq)  fprintf(stderr, "CPU frequency scaling disabled\n");
+
+	/* What kernel version are we running in? */
+	kernel_version = Get_Kernel_version();
 
   /* check for specific hardware */
   while (1)
@@ -94,6 +104,21 @@ int pm_support(int use_this_battery)
     }
     break;
   }
+
+	/* Does this system support CPU frequency scaling? */
+	if (use_cpufreq)
+	{
+		use_cpufreq = check_cpufreq();
+		if (use_cpufreq) fprintf(stderr, "CPU frequency scaling available\n");
+		else             fprintf(stderr, "CPU frequency scaling NOT available\n");
+
+		/* Set default governors if we were supplied none */
+		if (!cpufreq_offline_governor)
+			cpufreq_offline_governor = CPUFREQ_GOV_ONDEMAND;
+
+		if (!cpufreq_online_governor)
+			cpufreq_online_governor = CPUFREQ_GOV_PERFORMANCE;
+	}
 
   /* Is this an acpi system? */
   if (check_acpi())
@@ -157,6 +182,13 @@ void get_power_status(pm_status *power_status)
 
     if (fast_charge_mode && (power_status->battery_percentage == 100)) fast_battery_charge(0);
 
+		/* Let's see wether we failed to get battery time */
+		if (battery_present && (battery_percentage < 100) && (power_status->battery_time <= 0))
+		{
+			/* OK, we failed, we calculate the value ourselves */
+			power_status->battery_time = calculate_battery_time(battery_percentage, ac_on_line);
+		}
+
     return;
   }
 
@@ -199,9 +231,10 @@ void get_power_status(pm_status *power_status)
 
 int get_fan_status(void)
 {
-  if (machine == COMPAL) return compal_get_fan_status();
-  if (machine == DELL) return dell_get_fan_status();
+  if (machine == COMPAL)  return compal_get_fan_status();
+  if (machine == DELL)    return dell_get_fan_status();
   if (machine == TOSHIBA) return toshiba_get_fan_status(use_toshiba_hardware);
+	if (pm_type == PM_ACPI) return acpi_get_fan_status();
 
   return PM_Error;
 }
@@ -254,8 +287,8 @@ void get_temperature(int *temperature, int *temp_is_celsius)
 
 void internal_set_pm_features(int ac_status)
 {
-  static int seti_status = 0;
-  static int noflushd    = 0;
+  static int seti_status = -1;
+  static int noflushd    = -1;
 
   if (fast_charge_mode) ac_status=0;
   if (ac_status)
@@ -267,11 +300,16 @@ void internal_set_pm_features(int ac_status)
       noflushd = 0;
     }
     /* Start lin-seti */
-    if (use_lin_seti && !seti_status)
+    if (use_lin_seti && (!seti_status || seti_status == -1))
     {
       system("/etc/init.d/lin-seti start >/dev/null 2>/dev/null");
       seti_status = 1;
     }
+		/* Set CPU governor to 'performance' (or whatever our master chose when online) */
+		if (use_cpufreq)
+			if (!cpufreq_set_governor(cpufreq_online_governor))
+				fprintf(stderr, "failed setting '%s' CPUfreq governor!\n", cpufreq_online_governor);
+
     if (machine == COMPAL)
     {
       /* Set LCD to maximum brightness */
@@ -293,7 +331,7 @@ void internal_set_pm_features(int ac_status)
   }
   else
   { /* we are on battery power */
-    if (use_noflushd && !noflushd)
+    if (use_noflushd && (!noflushd || noflushd == -1))
     {
       /* Start noflushd damon (enable HD spindown) */
       system("/etc/init.d/noflushd start >/dev/null 2>/dev/null");
@@ -305,6 +343,11 @@ void internal_set_pm_features(int ac_status)
       system("/etc/init.d/lin-seti stop >/dev/null 2>/dev/null");
       seti_status = 0;
     }
+		/* Set CPU governor to 'ondemand' (or whatever our master chose when offline) */
+		if (use_cpufreq)
+			if (!cpufreq_set_governor(cpufreq_offline_governor))
+				fprintf(stderr, "failed setting '%s' CPUfreq governor!\n", cpufreq_offline_governor);
+
     if (machine == COMPAL)
     {
       /* Set LCD to maximum brightness */
@@ -399,6 +442,12 @@ void set_toshiba_hardware_use(int toggle)
 }
 
 
+void set_cpufreq_use(int toggle)
+{
+  use_cpufreq = toggle;
+}
+
+
 void lcdBrightness_UpOneStep()
 {
   if (machine == COMPAL)  Compal_lcdBrightness_UpOneStep();
@@ -410,4 +459,92 @@ void lcdBrightness_DownOneStep()
 {
   if (machine == COMPAL)  Compal_lcdBrightness_DownOneStep();
   if (machine == TOSHIBA) Toshiba_lcdBrightness_DownOneStep(use_toshiba_hardware);
+}
+
+
+kernel_versions Get_Kernel_version(void)
+{
+	FILE *fp = fopen("/proc/version", "r");
+	char buf[512];
+
+	if (!fp) return IS_OTHER;
+	if (!fgets(buf, 512, fp))
+	{
+		fclose(fp);
+		return IS_OTHER;
+	}
+	fclose(fp);
+
+	if (strstr(buf, "2.6.")) return IS_2_6;
+	return IS_OTHER;
+}
+
+/* Calculate estimated battery time
+ * note that the result this function returns
+ * is fairly inaccurate, and will be used only
+ * if we fail to get the value trough ACPI, APM
+ * or whatever...
+ */
+int calculate_battery_time(int battery_percentage, int ac_on_line)
+{
+	static int    first_percentage =  0;
+	static int    first_on_line    = -1;
+	static time_t first_time       =  0;
+	static time_t prev_time        =  0;
+	time_t        curr_time        = time(NULL);
+	int           battery_time;
+	int           elapsed_time;
+	int           drained_battery;
+
+	/* First time we are run, we cannot return anything meaningful;
+	 * also, we have to reinitialize ourselves when our host switches
+	 * to/from battery power. Plus, it is best to reinitialize our stuff
+	 * when the time elapsed since our last update is significantly
+	 * higher than our polling interval, because this likely means that
+	 * the system has been suspended (we allow it some play -60 seconds-
+	 * because -who knows- the system might be on really heavy load)...
+	 */
+	if (!first_time || (first_on_line != ac_on_line) || (first_time && (curr_time-prev_time>(waittime + 60))))
+	{
+		if (!first_time)
+		{
+			fprintf(stderr, "could not read battery time!\n");
+			fprintf(stderr, "I will calculate it directly, but this is FAR from accurate..\n");
+		}
+		else fprintf(stderr, "re-initializing battery time!\n");
+
+		first_percentage = battery_percentage;
+		first_on_line    = ac_on_line;
+		first_time       = curr_time;
+		prev_time        = curr_time;
+		return 0;
+	}
+
+	prev_time = curr_time;
+
+	/* Seconds passed since we were initialized */
+	elapsed_time = curr_time - first_time;
+
+	/* How much battery was drained in this time? */
+	drained_battery = first_percentage - battery_percentage;
+
+	if (!drained_battery) return 0;
+
+	/* elapsed_time : drained_battery = ? time : remaining battery */
+	battery_time = battery_percentage * elapsed_time / drained_battery;
+
+	/* the value is in seconds, but we need it in minutes */
+	battery_time = battery_time / 60;
+
+	/* we get a negative reading when running on AC power
+	 * (time remaining until battery is charged)
+	 */
+	if (ac_on_line) battery_time = -battery_time;
+
+	/* Don't allow it to be higher than 99 hours and 59 minutes,
+	 * otherwise our GUI will not be able to handle it
+	 */
+	if (battery_time > 5999) battery_time = 0;
+
+	return battery_time;
 }

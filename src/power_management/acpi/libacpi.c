@@ -52,6 +52,7 @@ char buf[512];
 
 static char batteries[MAXBATT][128];
 static char  battinfo[MAXBATT][128];
+static char      fans[MAXFANS][128];
 
 
 void sort(char names[MAXBATT][128], int count)
@@ -102,7 +103,11 @@ int check_acpi(void)
   closedir (battdir);
 
 	/* order battery names as readdir doesn't handle that */
-	if (batt_count > 1) sort(batteries, batt_count);
+	if (batt_count > 1)
+	{
+		sort(batteries, batt_count);
+		sort(battinfo,  batt_count);
+	}
 
 	fprintf(stderr, "libacpi: found %d batter%s\n", batt_count, (batt_count == 1) ? "y" : "ies");
 
@@ -410,4 +415,67 @@ void acpi_get_temperature(int *temperature, int *temp_is_celsius)
 	(*temperature) = temp;
 	if (*unit == 'C') (*temp_is_celsius) = 1;
 	else (*temp_is_celsius) = 0;
+}
+
+int get_fan_info(void)
+{
+	struct dirent *entry;
+	char *basedir = "/proc/acpi/fan";
+	DIR  *dir;
+	int   n_fans = 0;
+
+	dir = opendir(basedir);
+	if (!dir) return 0;
+	while ((entry= readdir(dir)))
+  {
+		char *temp;
+    if (!strcmp(entry->d_name, "." )) continue;
+    if (!strcmp(entry->d_name, "..")) continue;    
+    temp = StrApp((char**)NULL, basedir, "/", entry->d_name, "/state", (char*)NULL);
+		if (!access(temp, R_OK))
+		{
+			if (n_fans == MAXFANS)
+			{
+				fprintf(stderr, "acpi_lib: found more fans, but wmpower can handle only %d.\n", MAXFANS);
+				free(temp);
+				break;
+			}
+			strncpy(fans[n_fans], temp, 127);
+			fans[n_fans][127] = '\0';
+			n_fans++;
+			fprintf(stderr, "acpi_lib: found fan info at '%s'\n", temp);
+		}
+		else fprintf(stderr, "acpi_lib: cannot access fan info at '%s'\n", temp);
+		free(temp);
+	}
+	closedir(dir);
+	fprintf(stderr, "acpi_lib: %d fan(s) found...\n", n_fans);
+
+	return n_fans;
+}
+
+/* return number of fans running */
+int acpi_get_fan_status(void)
+{
+	static int n_fans = -1;
+	int running_fans  =  0;
+	int i;
+
+	if (n_fans == -1) n_fans = get_fan_info();
+	if (!n_fans) return PM_Error;
+
+	for (i=0; i<n_fans; i++)
+	{
+		char *ptr  = buf;
+		FILE *fp   = fopen(fans[i], "r");
+		int offset = 26;
+
+		if (!fp) return PM_Error;
+		if (!fgets(buf, 512, fp)) ptr = NULL;
+		fclose(fp);
+		if (!ptr) return PM_Error;
+		if (ptr[offset] == 'n') running_fans++;
+	}
+
+	return running_fans;
 }

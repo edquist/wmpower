@@ -1,9 +1,9 @@
 /***************************************************************************
-                      power_management.h  -  description
+                          cpufreq.h  -  description
                              -------------------
     begin                : Feb 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : 2001s098@educ.disi.unige.it
+    copyright            : (C) 2003,2004,2005 by Noberasco Michele
+    e-mail               : s4t4n@gentoo.org
 ***************************************************************************/
 
 /***************************************************************************
@@ -25,41 +25,18 @@
  *                                                                         *
  ***************************************************************************/
 
-#define PM_Error -1
-#define PM_ACPI 2
-#define PM_APM  3
 
-typedef enum
-{
-	IS_2_6 = 0,
-	IS_OTHER
-} kernel_versions;
-kernel_versions kernel_version;
+#define CPUFREQ_GOV_PERFORMANCE "performance"
+#define CPUFREQ_GOV_ONDEMAND    "ondemand"
 
-typedef struct
-{
-	int battery_percentage;
-	int battery_charging;
-	int battery_time;
-	int battery_present;
-	int ac_on_line;
-	int fan_status;
-	int temperature;
-	int temp_is_celsius;
 
-} pm_status;
+/* Checks wether this machine supports CPU frequency scaling */
+int check_cpufreq(void);
 
-int waittime; /* /proc polling time */
-char *cpufreq_online_governor;
-char *cpufreq_offline_governor;
+/* Set cpufreq governor */
+int cpufreq_set_governor(char *governor);
 
-int pm_support(int which_battery);
-void get_power_status(pm_status *power_status);
-void set_pm_features(void);
-int fast_battery_charge(int toggle);
-void set_noflushd_use(int toggle);
-void set_lin_seti_use(int toggle);
-void set_toshiba_hardware_use(int toggle);
-void set_cpufreq_use(int toggle);
-void lcdBrightness_UpOneStep();
-void lcdBrightness_DownOneStep();
+/* Get cpufreq governor of CPU #n, where 1<=n<=MAX, where MAX is
+ * the number of CPUs you have in your system
+ */
+char *cpufreq_get_governor(int cpu);

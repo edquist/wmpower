@@ -1,6 +1,8 @@
 ## Makefile.am for wmpower/src
 
-INCLUDES =	-Iacpi -Iapm -Icompal -Idell -Itoshiba -Ilib_utils
+INCLUDES =	-Iacpi -Iapm -Icompal -Idell -Itoshiba -Icpufreq -Ilib_utils
+
+AM_CFLAGS  = -DX86=@X86@
 
 noinst_LIBRARIES = libpower.a
 
@@ -21,4 +23,6 @@ libpower_a_SOURCES = power_management.c \
 								toshiba/sci.c \
 								toshiba/sci.h \
 								lib_utils/lib_utils.c \
-								lib_utils/lib_utils.h
+								lib_utils/lib_utils.h \
+								cpufreq/cpufreq.c \
+								cpufreq/cpufreq.h
