@@ -113,7 +113,7 @@ int check_cpufreq_2_6(void)
 			continue;
 		}
 		fclose(fp);
-		test = (char *) malloc(sizeof(line));
+		test = (char *) calloc(strlen(line)+1, sizeof(char));
 		if (!test)
 		{
 			fprintf(stderr, "allocation failure!\n");
@@ -188,7 +188,7 @@ char *cpufreq_get_governor_2_6(int cpu)
 	fclose(fp);
 	free(filename);
 
-	test = (char*) malloc(sizeof(line));
+	test = (char*) calloc(strlen(line)+1,sizeof(char));
 	if (!test)
 	{
 		fprintf(stderr, "failure allocating memory!\n");
@@ -251,7 +251,7 @@ int set_cpufreq_governor_2_6(char *governor)
 			char   *line = NULL;
 			char   *test;
 			int     cont = 0;
-				
+
 			if (getline(&line, &len, fp) == -1)
 			{
 				fprintf(stderr, "could not read from file %s!\n", filename);
@@ -261,12 +261,14 @@ int set_cpufreq_governor_2_6(char *governor)
 				continue;					
 			}
 			fclose(fp);
-			test = (char *) malloc(sizeof(line));
+
+			test = (char *) calloc(strlen(line)+1, sizeof(char));
 			if (!test)
 			{
 				fprintf(stderr, "failure allocating memory!\n");
 				abort();
 			}
+
 			while (sscanf(line+cont, "%s", test) != EOF)
 			{
 				if (!strcmp(test, governor))
@@ -289,6 +291,7 @@ int set_cpufreq_governor_2_6(char *governor)
 
 		/* OK, let's set the specified governor for this CPU */
 		filename = StrApp((char**)NULL, curr_cpu->dir_name, SYSFS_CPUFREQ_SET_GOV, (char*)NULL);
+
 		fp = fopen(filename, "w");
 		if (!fp)
 		{
@@ -330,7 +333,7 @@ int set_cpufreq_governor_2_6(char *governor)
 				continue;					
 			}
 			fclose(fp);
-			test = (char *) malloc(sizeof(line));
+			test = (char *) calloc(strlen(line)+1,sizeof(char));
 			if (!test)
 			{
 				fprintf(stderr, "failure allocating memory!\n");

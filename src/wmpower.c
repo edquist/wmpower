@@ -137,24 +137,26 @@ int main (int argc, char *argv[])
       if (old_battery_charging != power_status.battery_charging) fbc_auto = 1;
 
       /* Enable fast battery charge mode if on AC and batt is charging   */
-      if (!no_full_battery && power_status.ac_on_line && power_status.battery_charging && fbc_auto && fbc_toggle)
+      if (!no_full_battery && power_status.ac_on_line && power_status.battery_charging && fbc_auto && !fbc_toggle && !(power_status.battery_percentage == 100))
       {
-        if (fast_battery_charge(fbc_toggle) == fbc_toggle)
-          fbc_toggle= !fbc_toggle;
+        fast_battery_charge(1);
+				fbc_toggle = 1;
+        fbc_auto   = 1;
       }
 
       /* Adjust variables value when battery reaches 100% */
-      if (!fbc_toggle && (power_status.battery_percentage == 100))
+      if (fbc_toggle && (power_status.battery_percentage == 100))
       {
-        fbc_toggle = 1;
+				fast_battery_charge(0);
+        fbc_toggle = 0;
         fbc_auto   = 1;
       }
 
 			/* If battery not present and fast charge mode, disable it */
-			if (!fbc_toggle && !(power_status.battery_present))
+			if (fbc_toggle && !(power_status.battery_present))
 			{
 				fast_battery_charge(0);
-				fbc_toggle = 1;
+				fbc_toggle = 0;
 				fbc_auto   = 1;
 			}
 
@@ -202,7 +204,7 @@ int main (int argc, char *argv[])
       {
 				case Expose:
 					RedrawWindow ();
-					break;
+					continue;
 				case ButtonPress:
 					if (no_meddling)
 					{
@@ -219,15 +221,12 @@ int main (int argc, char *argv[])
 						lcdBrightness_DownOneStep();
 						continue;
 					}
-					if (fast_battery_charge(fbc_toggle) == fbc_toggle)
-					{
-						fbc_toggle = !fbc_toggle;
-						fbc_auto = 0;
-						continue;
-					}
-					break;
+					fbc_toggle = !get_fast_battery_charge_mode();
+					fbc_auto   = 0;
+          fast_battery_charge(fbc_toggle);
+					continue;
 				case ButtonRelease:
-					break;
+					continue;
       }
     }
 

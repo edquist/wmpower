@@ -305,6 +305,7 @@ void internal_set_pm_features(int ac_status)
       system("/etc/init.d/lin-seti start >/dev/null 2>/dev/null");
       seti_status = 1;
     }
+
 		/* Set CPU governor to 'performance' (or whatever our master chose when online) */
 		if (use_cpufreq)
 			if (!cpufreq_set_governor(cpufreq_online_governor))
@@ -424,6 +425,12 @@ int fast_battery_charge(int toggle)
 }
 
 
+int get_fast_battery_charge_mode(void)
+{
+	return fast_charge_mode;
+}
+
+
 void set_noflushd_use(int toggle)
 {
   use_noflushd = toggle;
@@ -494,7 +501,6 @@ int calculate_battery_time(int battery_percentage, int ac_on_line)
 	time_t        curr_time        = time(NULL);
 	int           battery_time;
 	int           elapsed_time;
-	int           drained_battery;
 
 	/* First time we are run, we cannot return anything meaningful;
 	 * also, we have to reinitialize ourselves when our host switches
@@ -525,21 +531,35 @@ int calculate_battery_time(int battery_percentage, int ac_on_line)
 	/* Seconds passed since we were initialized */
 	elapsed_time = curr_time - first_time;
 
-	/* How much battery was drained in this time? */
-	drained_battery = first_percentage - battery_percentage;
+	if (!ac_on_line)
+	{ /* We calculate time left until battery drains out */
 
-	if (!drained_battery) return 0;
+		/* How much battery was drained in this time? */
+		int drained_battery = first_percentage - battery_percentage;
 
-	/* elapsed_time : drained_battery = ? time : remaining battery */
-	battery_time = battery_percentage * elapsed_time / drained_battery;
+		if (!drained_battery) return 0;
+
+		/* elapsed_time : drained_battery = ? time : remaining battery */
+		battery_time = battery_percentage * elapsed_time / drained_battery;
+	}
+	else
+	{ /* We calculate time left until battery is fully recharged */
+		
+		/* How much battery was gained in this time? */
+		int gained_battery = battery_percentage - first_percentage;
+
+		/* How much battery still to be charged? */
+		int remaining_battery = 100 - battery_percentage;
+
+		if (!gained_battery   ) return 0;
+		if (!remaining_battery) return 0;
+
+		/* elapsed_time : gained_battery = ? time : battery still to be charged */
+		battery_time = remaining_battery * elapsed_time / gained_battery;
+	}
 
 	/* the value is in seconds, but we need it in minutes */
 	battery_time = battery_time / 60;
-
-	/* we get a negative reading when running on AC power
-	 * (time remaining until battery is charged)
-	 */
-	if (ac_on_line) battery_time = -battery_time;
 
 	/* Don't allow it to be higher than 99 hours and 59 minutes,
 	 * otherwise our GUI will not be able to handle it

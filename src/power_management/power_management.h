@@ -57,6 +57,7 @@ int pm_support(int which_battery);
 void get_power_status(pm_status *power_status);
 void set_pm_features(void);
 int fast_battery_charge(int toggle);
+int get_fast_battery_charge_mode(void);
 void set_noflushd_use(int toggle);
 void set_lin_seti_use(int toggle);
 void set_toshiba_hardware_use(int toggle);

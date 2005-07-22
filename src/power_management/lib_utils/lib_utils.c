@@ -68,14 +68,19 @@ char *StrApp (char **dst, ...)
     if (!pt) break;
     len += strlen(pt);
   }
+
   va_end (va);
-  temp = (char *) calloc((size_t)len, sizeof(char));
+
+	temp = (char *) calloc((size_t)len, sizeof(char));
+
   if (dst) if (*dst)
   {
     strcpy(temp, *dst);
     free(*dst);
   }
+
   va_start(va, dst);
+
   for (;;)
   {
     pt = va_arg(va, char *);
@@ -85,5 +90,6 @@ char *StrApp (char **dst, ...)
   va_end (va);
 
   if (dst) *dst = temp;
+
   return temp;
 }

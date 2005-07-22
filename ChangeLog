@@ -1,3 +1,17 @@
+2005-07-19  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/power_management/power_management.c (calculate_battery_time):
+	When online, calculate time left until battery s fully charged
+
+	* src/power_management/cpufreq/cpufreq.c:
+	Fix an allocation issue that could make wmpower crash on rare occasions.
+
+2005-03-29  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/wmpower.c (main):
+	Fix small bug that made wmpower print forever that it would not
+	fast charge the battery as it was already at maximum capacity
+
 2005-02-23  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/power_management/cpufreq/cpufreq.c (check_cpufreq_2_6):

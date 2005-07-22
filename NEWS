@@ -1,7 +1,16 @@
+wmpower 0.4.2 (22 Jul 2005):
+- Fixed a memory allocation issue that on rare occasions could make
+  wmpower crash.
+- Fixed small bug that made wmpower print forever that it would not
+  fast charge the battery as it was already at maximum capacity.
+- When calculating battery time, and battery is charging, now wmpower
+  displays time remaining until battery is fully charged instead of
+	how much time would left if we were running on battery power.
+
 wmpower 0.4.1 (25 Feb 2005):
 - Fixed bug, reported by Pezhman Givy <phg@snafu.de>,
-	that made wmpower crash on startup when checking for cpufreq
-	support, if this support wasn't there...
+  that made wmpower crash on startup when checking for cpufreq
+  support, if this support wasn't there...
 
 
 wmpower 0.4.0 (23 Feb 2005):
