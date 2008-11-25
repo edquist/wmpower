@@ -292,6 +292,7 @@ void read_acpi_state (ACPIstate *acpistate, ACPIinfo *acpiinfo, int battery)
 				acpistate->pvoltage   = 0;
 				acpistate->rtime      = 0;
 				acpistate->percentage = 0;
+
 				return;
 			}
 			acpistate->present = 1;
@@ -312,9 +313,14 @@ void read_acpi_state (ACPIstate *acpistate, ACPIinfo *acpiinfo, int battery)
 					acpistate->state = 1;
 					break;
 				case 'c':
+				{
 					if (*(ptr + 33) == '/') acpistate->state = 0;
-					else acpistate->state = 2;
+					if (!strncmp(ptr+offset, "charged", 7))
+						acpistate->state = 1;
+					else
+						acpistate->state = 2;
 					break;
+				}
 				case 'u':
 					acpistate->state = 3;
 					break;

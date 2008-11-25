@@ -161,6 +161,7 @@ int acpi_set_lcd_brightness(int brightness)
 	if (brightness == TOSHIBA_LCD_MAX) brightness = max_brightness;
 	if (brightness == TOSHIBA_LCD_MIN) brightness = 0;
 	if (brightness == TOSHIBA_LCD_MED) brightness = max_brightness/2;
+
 	if (brightness == UP_ONE_STEP)
 	{
 		if (current_brightness < max_brightness) brightness = current_brightness + 1;
@@ -171,6 +172,9 @@ int acpi_set_lcd_brightness(int brightness)
 		if (current_brightness > min_brightness) brightness = current_brightness - 1;
 		else return 1;
 	}
+
+	if (maxBrightness != -1 && brightness > maxBrightness) brightness = maxBrightness;
+	if (minBrightness != -1 && brightness < minBrightness) brightness = minBrightness;
 
 	if (brightness != current_brightness)
 	{
@@ -236,6 +240,9 @@ void hardware_set_lcd_brightness(int brightness)
 	  /*if (current_brightness > TOSHIBA_LCD_MIN) lcd = current_brightness - 1;
 			else */return;
 	}
+
+	if (maxBrightness != -1 && lcd > maxBrightness) lcd = maxBrightness;
+	if (minBrightness != -1 && lcd < minBrightness) lcd = minBrightness;
 
   if (lcd != current_brightness)
   {

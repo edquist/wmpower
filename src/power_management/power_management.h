@@ -49,6 +49,8 @@ typedef struct
 
 } pm_status;
 
+int minBrightness;
+int maxBrightness;
 int waittime; /* /proc polling time */
 char *cpufreq_online_governor;
 char *cpufreq_offline_governor;
@@ -59,7 +61,6 @@ void set_pm_features(void);
 int fast_battery_charge(int toggle);
 int get_fast_battery_charge_mode(void);
 void set_noflushd_use(int toggle);
-void set_lin_seti_use(int toggle);
 void set_toshiba_hardware_use(int toggle);
 void set_cpufreq_use(int toggle);
 void lcdBrightness_UpOneStep();

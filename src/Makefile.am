@@ -10,8 +10,8 @@ wmpower_SOURCES = \
 		open_syslog_on_stderr.c  \
 		open_syslog_on_stderr.h
 
-wmpower_LDADD   = dockapp/libdockapp.a power_management/libpower.a
-wmpower_LDFLAGS = -lpthread -lXpm -lX11 -lXext -L/usr/X11R6/lib
+wmpower_LDADD   = dockapp/libdockapp.a power_management/libpower.a -lpthread -lXpm -lX11 -lXext
+wmpower_LDFLAGS = -L/usr/X11R6/lib
 
 EXTRA_DIST = \
 		pixmaps/wmpower_mask.xbm \

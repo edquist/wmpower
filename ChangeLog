@@ -1,3 +1,39 @@
+2008-11-25  Michele Noberasco  <noberasco@zirak.it>
+
+	* src/Makefile.am:
+	Fixed linker arguments to prevent issues compiling with -as-needed.
+
+2005-12-15  Michele Noberasco  <michele.noberasco@tiscali.it>
+
+	* src/power_management/power_management.c,
+	* src/power_management/power_management.h,
+	* src/wmpower.c:
+	Removed support for lin-seti as the original Seti@Home
+	project has shut down its activities.
+
+2005-09-12  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/power_management/compal/compal_lib.c,
+	* src/power_management/compal/compal_lib.h,
+	* src/power_management/power_management.c (get_power_status):
+	Removed redundant Compal specific battery time retrieval feature.
+
+2005-09-02  Noberasco Michele  <s4t4n@gentoo.org>
+
+	* src/power_management/toshiba/toshiba_lib.c (acpi_set_lcd_brightness),
+	(hardware_set_lcd_brightness),
+	* src/power_management/compal/compal_lib.c (compal_set_lcd_brightness), 
+	* src/power_management/power_management.h,
+	* src/wmpower.c (main, ParseCMDLine, message): 
+	Added new command line arguments to be able to force wmpower to use
+	our values for minimum and maximum brightness.
+
+	* src/power_management/compal/compal_lib.c (compal_get_battery_time):
+	Check wether battery is present instead of segfaulting when we think
+	it is while, in face, it is not.
+	(compal_set_lcd_brightness): 
+	Fixed lcd brightness handling.
+
 2005-07-19  Noberasco Michele  <s4t4n@gentoo.org>
 
 	* src/power_management/power_management.c (calculate_battery_time):

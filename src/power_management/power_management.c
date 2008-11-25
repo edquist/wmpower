@@ -52,7 +52,6 @@ int pm_type=PM_Error;
 int ac_on_line;
 int battery_percentage;
 int battery_present;
-int use_lin_seti=1;
 int use_noflushd=1;
 int use_cpufreq=1;
 
@@ -71,7 +70,6 @@ int pm_support(int use_this_battery)
   Battery = use_this_battery;
 
   if (!use_noflushd) fprintf(stderr, "use of noflushd is disabled\n");
-  if (!use_lin_seti) fprintf(stderr, "use of lin_seti is disabled\n");
 	if (!use_cpufreq)  fprintf(stderr, "CPU frequency scaling disabled\n");
 
 	/* What kernel version are we running in? */
@@ -167,7 +165,6 @@ void get_power_status(pm_status *power_status)
     else power_status->battery_charging=0;
 
     /* Check battery time and percentage */
-    if (machine == COMPAL) acpistate.rtime = compal_get_battery_time();
     power_status->battery_time = acpistate.rtime;
     power_status->battery_percentage = acpistate.percentage;
     if (power_status->battery_percentage > 100) power_status->battery_percentage = 100;
@@ -287,7 +284,6 @@ void get_temperature(int *temperature, int *temp_is_celsius)
 
 void internal_set_pm_features(int ac_status)
 {
-  static int seti_status = -1;
   static int noflushd    = -1;
 
   if (fast_charge_mode) ac_status=0;
@@ -299,12 +295,6 @@ void internal_set_pm_features(int ac_status)
       system("/etc/init.d/noflushd stop >/dev/null 2>/dev/null");
       noflushd = 0;
     }
-    /* Start lin-seti */
-    if (use_lin_seti && (!seti_status || seti_status == -1))
-    {
-      system("/etc/init.d/lin-seti start >/dev/null 2>/dev/null");
-      seti_status = 1;
-    }
 
 		/* Set CPU governor to 'performance' (or whatever our master chose when online) */
 		if (use_cpufreq)
@@ -314,12 +304,12 @@ void internal_set_pm_features(int ac_status)
     if (machine == COMPAL)
     {
       /* Set LCD to maximum brightness */
-      compal_set_lcd_brightness(COMPAL_LCD_MAX);
+			compal_set_lcd_brightness(COMPAL_LCD_MAX);
     }
     if (machine == TOSHIBA)
     {
       /* Set LCD to maximum brightness */
-      toshiba_set_lcd_brightness(TOSHIBA_LCD_MAX, use_toshiba_hardware);
+			toshiba_set_lcd_brightness(TOSHIBA_LCD_MAX, use_toshiba_hardware);
       /* Start fan */
       if (use_toshiba_hardware && (pm_type != PM_ACPI)) toshiba_set_fan_status(1);
       return;
@@ -338,12 +328,6 @@ void internal_set_pm_features(int ac_status)
       system("/etc/init.d/noflushd start >/dev/null 2>/dev/null");
       noflushd = 1;
     }
-    /* Stop lin-seti */
-    if (use_lin_seti && seti_status)
-    {
-      system("/etc/init.d/lin-seti stop >/dev/null 2>/dev/null");
-      seti_status = 0;
-    }
 		/* Set CPU governor to 'ondemand' (or whatever our master chose when offline) */
 		if (use_cpufreq)
 			if (!cpufreq_set_governor(cpufreq_offline_governor))
@@ -351,13 +335,13 @@ void internal_set_pm_features(int ac_status)
 
     if (machine == COMPAL)
     {
-      /* Set LCD to maximum brightness */
-      compal_set_lcd_brightness(COMPAL_LCD_MIN);
+      /* Set LCD to minimum brightness */
+			compal_set_lcd_brightness(COMPAL_LCD_MIN);
     }
     if (machine == TOSHIBA)
     {
       /* Set LCD to minimum brightness */
-      toshiba_set_lcd_brightness(TOSHIBA_LCD_MIN, use_toshiba_hardware);
+			toshiba_set_lcd_brightness(TOSHIBA_LCD_MIN, use_toshiba_hardware);
       /* Stop fan */
       if (use_toshiba_hardware && (pm_type != PM_ACPI)) toshiba_set_fan_status(0);
       return;
@@ -434,12 +418,6 @@ int get_fast_battery_charge_mode(void)
 void set_noflushd_use(int toggle)
 {
   use_noflushd = toggle;
-}
-
-
-void set_lin_seti_use(int toggle)
-{
-  use_lin_seti = toggle;
 }
 
 

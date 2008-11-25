@@ -155,11 +155,12 @@ int compal_set_lcd_brightness (int brightness)
 {
 	FILE *fp = fopen (COMPAL_PROC_FILE_LCD, "w");
 
-
 	if (!fp) return PM_Error;
 
-	if ((brightness < COMPAL_LCD_MIN) || (brightness > COMPAL_LCD_MAX))
-		return PM_Error;
+	if (brightness < COMPAL_LCD_MIN) brightness = COMPAL_LCD_MIN;
+	if (brightness > COMPAL_LCD_MAX) brightness = COMPAL_LCD_MAX;
+	if (maxBrightness != -1 && brightness > maxBrightness) brightness = maxBrightness;
+	if (minBrightness != -1 && brightness < minBrightness) brightness = minBrightness;
 
 	fprintf (fp, "%i", brightness);
 	fclose  (fp);
@@ -178,62 +179,4 @@ void Compal_lcdBrightness_UpOneStep (void)
 void Compal_lcdBrightness_DownOneStep (void)
 {
 	compal_set_lcd_brightness (compal_get_lcd_brightness () - 1);
-}
-
-
-
-int compal_get_battery_time (void)
-{
-	static time_t  prevtime          = 0;
-	static int     prevcapacity      = 0;
-	static int     prevstatus        = -1;
-	static int     prevdeltacapacity = 0;
-	static int     rtime             = 0;
-
-	FILE          *fp                = fopen(COMPAL_PROC_FILE_BATT, "r");
-	char           buf [COMPAL_MAX_DMI_INFO + 1];
-	char          *ptr;
-	int            rcapacity;
-	int            status; /* 1 if discharging */
-	int            fullcapacity;
-	time_t         deltatime;
-	int            deltacapacity;
-	float          prate;
-
-
-	if (!fp) return PM_Error;
-
-	fread (&buf, 1, COMPAL_MAX_BATT_INFO, fp);
-	fclose(fp);
-
-	/* always get the values in order! */
-	ptr          = strtok (buf, ":\n");
-	rcapacity    = atoi (getvaluefromhash ("Remaining Capacity", ptr));
-	fullcapacity = atoi (getvaluefromhash ("Last Full Capacity", ptr));
-	status       = tolower (getvaluefromhash ("Status", ptr) [0]) == 'd';
-
-	if (status != prevstatus)
-	{
-		prevtime     = time (NULL);
-		prevcapacity = rcapacity;
-		prevstatus   = status;
-		return 0;
-	}
-
-	deltatime     = difftime (time (NULL), prevtime);
-	deltacapacity = abs (prevcapacity - rcapacity);
-
-	if (deltacapacity == prevdeltacapacity)
-		return rtime;
-
-	prevdeltacapacity = deltacapacity;
-	prate = 60 * (float) ((float) deltacapacity / (float) deltatime);
-	if (status)
-		rtime = (float) ((float) rcapacity / (float) prate);
-	else
-		rtime = (float) ((float) (fullcapacity - rcapacity) / (float) prate);
-
-	if (rtime < 0) rtime = 0;
-
-	return rtime;
 }

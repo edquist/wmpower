@@ -12,8 +12,8 @@ Features:
 - On ACPI kernels you get fan status and a thermal sensor;
 - Direct access to Toshiba hardware: you get fan status
   and LCD brightness management even without an APCI kernel;
-- While on battery, it can stop your fan, HD, lin-seti
-  service to make the battery last longer; if you have a
+- While on battery, it can stop your fan, HD
+  to make the battery last longer; if you have a
   Toshiba Laptop, it can also adjust your LCD brightness;
 - Fast battery charge mode: you can keep 'on battery'
   settings until your battery reaches 100%: this will

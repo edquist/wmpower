@@ -50,7 +50,7 @@ void ShowACstatus(int ac_on_line);
 void ShowFanStatus(int fanstatus);
 void ShowTemperature(int temp, int is_celsius);
 void ShowChargeStatus(int charging);
-void ShowBatteryTime(int time, int percentage);
+void ShowBatteryTime(int time, int percentage, int charging, int ac_on_line);
 void ShowBatteryPercentage(int percentage);
 void ShowBatteryLed(int present, int percentage, int ac_on_line);
 
@@ -96,8 +96,10 @@ int main (int argc, char *argv[])
   delay.tv_sec  = 0;
   delay.tv_nsec = 500000000;
 
-  BlinkRate = (BlinkRate >= 0.0) ? BlinkRate : -1.0 * BlinkRate;
-	waittime  = 0;       /* /proc polling interval */
+  BlinkRate     = (BlinkRate >= 0.0) ? BlinkRate : -1.0 * BlinkRate;
+	waittime      = 0;       /* /proc polling interval */
+	minBrightness = -1;
+	maxBrightness = -1;
 
   fprintf(stderr, "\nWelcome to wmpower version %s...\n", VERSION);
 
@@ -188,7 +190,7 @@ int main (int argc, char *argv[])
     ShowChargeStatus(power_status.battery_charging);
 
     /* Display the "Time Left" */
-    ShowBatteryTime(power_status.battery_time, power_status.battery_percentage);
+    ShowBatteryTime(power_status.battery_time, power_status.battery_percentage, power_status.battery_charging, power_status.ac_on_line);
 
     /* Display battery percentage */
     ShowBatteryPercentage(power_status.battery_percentage);
@@ -364,15 +366,17 @@ void ShowTemperature(int temp, int temp_is_celsius)
 /* Display the "Time Left". This time means:                   */
 /* If not charging: Time left before battery drains to 0%      */
 /* If charging:     Time left before battery gets to maximum   */
-void ShowBatteryTime(int time, int percentage)
+void ShowBatteryTime(int time, int percentage, int charging, int ac_on_line)
 {
   int battery_time=time;
   int hour, min;
 
-  if ((battery_time < -1) || ( (battery_time == 0) && (percentage == 0) ) )
+  if ( (battery_time < -1) || ((battery_time == 0)&&(percentage == 0)) || (ac_on_line&&(percentage == 100)) )
   {
-    /* In case there is some problem reading battery time
-       we display a "null" indicator (--:--).                  */
+    /* In case battery is fully charged and we are on AC power,
+		 * or there is some problem reading battery time
+		 * we display a "null" indicator (--:--)
+		 */
     copyXPMArea (83, 106, 41, 9, 15, 7);
     return;
   }
@@ -381,6 +385,12 @@ void ShowBatteryTime(int time, int percentage)
   if (percentage == 100) battery_time = 0;
   hour = battery_time / 60;
   min  = battery_time % 60;
+
+	/* show '-' sign when charging, '+' otherwise */
+	if (charging)
+		copyXPMArea (83, 106, 41, 9, 15, 7);
+	else
+		copyXPMArea (83, 93,  41, 9, 15, 7);
 
   /* Show 10's (hour) */
   copyXPMArea ((hour / 10) * 7 + 5, 93, 7, 9, 21, 7);
@@ -457,10 +467,6 @@ void message(void)
   printf("\t\t\t\tnoflushd is a tool for managing spin-down\n");
   printf("\t\t\t\tof hard disks after a certain amount of time\n");
   printf("\t\t\t\tsee <http://noflushd.sourceforge.net> for details.\n");
-  printf("\t-no-lin-seti\t\tDon't manage \"lin-seti\" daemon:\n");
-  printf("\t\t\t\t\"lin-seti\" is a Seti@Home cache manager that can\n");
-  printf("\t\t\t\twork as a daemon. For details go to\n");
-  printf("\t\t\t\t<http://sourceforge.net/projects/lin-seti/>.\n");
   printf("\t-no-toshiba\t\tDisable direct access to toshiba hardware,\n");
   printf("\t\t\t\tuse only generic ACPI/APM calls instead.\n");
   printf("\t\t\t\tThis is recommended on newer toshibas.\n");
@@ -474,6 +480,8 @@ void message(void)
   printf("\t-w <command>\t\tWarn command to run when remaining time is low.\n");
   printf("\t-W <minutes>\t\tMinutes of remaining time when to run warn command.\n");
   printf("\t-u <seconds>\t\tSet wmpower polling interval.\n");
+  printf("\t-m <brightness>\t\tUse this LCD brightness value while running on battery power.\n");
+  printf("\t-M <brightness>\t\tUse this LCD brightness value while running on AC power.\n");
   printf("\t-g <governor>\t\tUse this CPUFreq scaling governor while running on battery power.\n");
   printf("\t-G <governor>\t\tUse this CPUFreq scaling governor while running on AC power.\n");
   printf("\t-s\t\t\tMake wmpower log to syslog instead of standard error.\n");
@@ -553,6 +561,16 @@ void ParseCMDLine (int argc, char *argv[])
 					Beep = 1;
 					Volume = atoi (argv[++i]);
 					break;
+				case 'm':
+					if (cmdline[2] != '\0') message();
+					if (argc == i+1) message();
+					minBrightness = atoi (argv[++i]);
+					break;
+				case 'M':
+					if (cmdline[2] != '\0') message();
+					if (argc == i+1) message();
+					maxBrightness = atoi (argv[++i]);
+					break;
 				case 'w':
 					if (cmdline[2] != '\0') message();
 					if (argc == i+1) message();
@@ -572,7 +590,6 @@ void ParseCMDLine (int argc, char *argv[])
 					if (!strcmp(cmdline, "-no-meddling"))     {no_meddling = 1;             break;}
 					if (!strcmp(cmdline, "-no-full-battery")) {no_full_battery = 1;         break;}
 					if (!strcmp(cmdline, "-no-noflushd"))     {set_noflushd_use(0);         break;}
-					if (!strcmp(cmdline, "-no-lin-seti"))     {set_lin_seti_use(0);         break;}
 					if (!strcmp(cmdline, "-no-toshiba"))      {set_toshiba_hardware_use(0); break;}
 					if (!strcmp(cmdline, "-no-cpufreq"))      {set_cpufreq_use(0);          break;}
 				default:

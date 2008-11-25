@@ -55,4 +55,3 @@ int   compal_get_lcd_brightness(void);
 int   compal_set_lcd_brightness(int brightness);
 void  Compal_lcdBrightness_UpOneStep(void);
 void  Compal_lcdBrightness_DownOneStep(void);
-int   compal_get_battery_time(void);

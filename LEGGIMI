@@ -17,8 +17,8 @@ Punti di forza:
   settare stato della ventola e luminosità del display
   anche senza un kernel ACPI;
 - Quanto il sistema è alimentato a batterie, wmpower può
-  spegnere la vostra ventola, disco fisso, servizio lin-seti
-  per consentire una maggiore autonomia; se avete un portatile
+  spegnere la vostra ventola, disco fisso per consentire
+  una maggiore autonomia; se avete un portatile
   Toshiba, può anche regolare la luminosità del display;
 - Modalità carica rapida della batteria: potete mantenere le
   impostazioni del punto precedente finché la batteria non 
