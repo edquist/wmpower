@@ -2,15 +2,17 @@
                           libacpi.c  -  description
                              -------------------
     begin                : Feb 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
+    copyright            : (C) 2003-2005 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
+    copyright            : (C) 2011 by Cezary M. Kruk
+    e-mail               : c.kruk@bigfoot.com
 ***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -78,7 +80,7 @@ int check_acpi(void)
   char *name;
 
 	/* do proc entries for acpi exist? */
-	if (access("/proc/acpi/info", R_OK) != 0) return 0;
+	if (access("/proc/acpi/wakeup", R_OK) != 0) return 0;
 
   /* now enumerate batteries */
   batt_count = 0;
@@ -356,6 +358,7 @@ void read_acpi_state (ACPIstate *acpistate, ACPIinfo *acpiinfo, int battery)
 	}
 
 	/* time remaining in minutes */
+	if (!acpistate->prate) acpistate->rtime = 0;
 	if (!acpistate->prate) return;
 	if (acpistate->state == 2) /* charging */
 		acpistate->rtime = ((float) ((float) (acpiinfo->last_full_capacity - acpistate->rcapacity) / (float) acpistate->prate)) * 60;

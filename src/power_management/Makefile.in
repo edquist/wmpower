@@ -113,7 +113,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
-INCLUDES = -Iacpi -Iapm -Icompal -Idell -Itoshiba -Icpufreq -Ilib_utils
+INCLUDES = -Iacpi -Iapm -Icompal -Idell -Iibm -Itoshiba -Icpufreq -Ilib_utils
 
 AM_CFLAGS = -DX86=@X86@
 
@@ -129,6 +129,8 @@ libpower_a_SOURCES = power_management.c \
 								compal/compal_lib.h \
 								dell/dell_lib.c \
 								dell/dell_lib.h \
+								ibm/ibm_lib.c \
+								ibm/ibm_lib.h \
 								toshiba/toshiba_lib.c \
 								toshiba/toshiba_lib.h \
 								toshiba/hci.c \
@@ -150,7 +152,7 @@ libpower_a_AR = $(AR) cru
 libpower_a_LIBADD =
 am_libpower_a_OBJECTS = power_management.$(OBJEXT) libacpi.$(OBJEXT) \
 	libapm.$(OBJEXT) compal_lib.$(OBJEXT) dell_lib.$(OBJEXT) \
-	toshiba_lib.$(OBJEXT) hci.$(OBJEXT) sci.$(OBJEXT) \
+	ibm_lib.$(OBJEXT) toshiba_lib.$(OBJEXT) hci.$(OBJEXT) sci.$(OBJEXT) \
 	lib_utils.$(OBJEXT) cpufreq.$(OBJEXT)
 libpower_a_OBJECTS = $(am_libpower_a_OBJECTS)
 
@@ -158,7 +160,7 @@ DEFAULT_INCLUDES =  -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/compal_lib.Po ./$(DEPDIR)/cpufreq.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/dell_lib.Po ./$(DEPDIR)/hci.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/dell_lib.Po ./$(DEPDIR)/ibm_lib.Po ./$(DEPDIR)/hci.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/lib_utils.Po ./$(DEPDIR)/libacpi.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/libapm.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/power_management.Po ./$(DEPDIR)/sci.Po \
@@ -199,6 +201,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/compal_lib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpufreq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dell_lib.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibm_lib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hci.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lib_utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libacpi.Po@am__quote@
@@ -316,6 +319,28 @@ dell_lib.obj: dell/dell_lib.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/dell_lib.Po' tmpdepfile='$(DEPDIR)/dell_lib.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o dell_lib.obj `if test -f 'dell/dell_lib.c'; then $(CYGPATH_W) 'dell/dell_lib.c'; else $(CYGPATH_W) '$(srcdir)/dell/dell_lib.c'; fi`
+
+ibm_lib.o: ibm/ibm_lib.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibm_lib.o -MD -MP -MF "$(DEPDIR)/ibm_lib.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o ibm_lib.o `test -f 'ibm/ibm_lib.c' || echo '$(srcdir)/'`ibm/ibm_lib.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibm_lib.Tpo" "$(DEPDIR)/ibm_lib.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/ibm_lib.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ibm/ibm_lib.c' object='ibm_lib.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/ibm_lib.Po' tmpdepfile='$(DEPDIR)/ibm_lib.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibm_lib.o `test -f 'ibm/ibm_lib.c' || echo '$(srcdir)/'`ibm/ibm_lib.c
+
+ibm_lib.obj: ibm/ibm_lib.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ibm_lib.obj -MD -MP -MF "$(DEPDIR)/ibm_lib.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o ibm_lib.obj `if test -f 'ibm/ibm_lib.c'; then $(CYGPATH_W) 'ibm/ibm_lib.c'; else $(CYGPATH_W) '$(srcdir)/ibm/ibm_lib.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/ibm_lib.Tpo" "$(DEPDIR)/ibm_lib.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/ibm_lib.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='ibm/ibm_lib.c' object='ibm_lib.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/ibm_lib.Po' tmpdepfile='$(DEPDIR)/ibm_lib.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ibm_lib.obj `if test -f 'ibm/ibm_lib.c'; then $(CYGPATH_W) 'ibm/ibm_lib.c'; else $(CYGPATH_W) '$(srcdir)/ibm/ibm_lib.c'; fi`
 
 toshiba_lib.o: toshiba/toshiba_lib.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT toshiba_lib.o -MD -MP -MF "$(DEPDIR)/toshiba_lib.Tpo" \

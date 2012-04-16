@@ -4,13 +4,15 @@
     begin                : Feb 10 2003
     copyright            : (C) 2003-2005 by Noberasco Michele
     e-mail               : 2001s098@educ.disi.unige.it
+    copyright            : (C) 2011 by Cezary M. Kruk
+    e-mail               : c.kruk@bigfoot.com
 ***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -35,6 +37,7 @@
 #include "libacpi.h"
 #include "libapm.h"
 #include "toshiba_lib.h"
+#include "ibm_lib.h"
 #include "dell_lib.h"
 #include "compal_lib.h"
 #include "cpufreq.h"
@@ -42,8 +45,9 @@
 /* what kind of machine is running us? */
 #define UNKNOWN 0
 #define TOSHIBA 1
-#define DELL    2
-#define COMPAL  3
+#define IBM     2
+#define DELL    3
+#define COMPAL  4
 int machine = UNKNOWN;
 
 int fast_charge_mode=0;
@@ -78,26 +82,33 @@ int pm_support(int use_this_battery)
   /* check for specific hardware */
   while (1)
   {
-    /* is this a compal laptop? */
+    /* is this a Compal laptop? */
     if (machine_is_compal())
     {
       machine = COMPAL;
       fprintf(stderr, "detected Compal laptop, %s\n", compal_model);
       break;
     }
-    /* is this a dell laptop? */
+    /* is this a Dell laptop? */
     if (machine_is_dell())
     {
       machine = DELL;
-      fprintf(stderr, "detected DELL laptop\n");
+      fprintf(stderr, "detected Dell laptop\n");
       break;
     }
-    /* Is this a Toshiba Laptop? */
+    /* is this a IBM/Lenovo laptop? */
+    if (machine_is_ibm())
+    {
+      machine = IBM;
+      fprintf(stderr, "detected IBM/Lenovo laptop\n");
+      break;
+    }
+    /* Is this a Toshiba laptop? */
     if (machine_is_toshiba(&use_toshiba_hardware))
     {
       machine = TOSHIBA;
-      fprintf(stderr, "detected TOSHIBA laptop, %s\n", toshiba_model);
-      if (!use_toshiba_hardware) fprintf(stderr, "direct access to TOSHIBA hardware disabled\n");
+      fprintf(stderr, "detected Toshiba laptop, %s\n", toshiba_model);
+      if (!use_toshiba_hardware) fprintf(stderr, "direct access to Toshiba hardware disabled\n");
       break;
     }
     break;
@@ -230,6 +241,7 @@ int get_fan_status(void)
 {
   if (machine == COMPAL)  return compal_get_fan_status();
   if (machine == DELL)    return dell_get_fan_status();
+  if (machine == IBM)     return ibm_get_fan_status();
   if (machine == TOSHIBA) return toshiba_get_fan_status(use_toshiba_hardware);
 	if (pm_type == PM_ACPI) return acpi_get_fan_status();
 
@@ -243,6 +255,21 @@ void get_temperature(int *temperature, int *temp_is_celsius)
   if (machine == COMPAL)
   {
     int result = compal_get_temperature();
+    if (result == PM_Error)
+    {
+      (*temperature)     = PM_Error;
+      (*temp_is_celsius) = PM_Error;
+      return;
+    }
+    (*temperature)     = result;
+    (*temp_is_celsius) = 1;
+    return;
+  }
+
+  /* for IBM laptops... */
+  if (machine == IBM)
+  {
+    int result = ibm_get_temperature();
     if (result == PM_Error)
     {
       (*temperature)     = PM_Error;

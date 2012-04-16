@@ -1,7 +1,23 @@
+TODO list by Michele Noberasco <noberasco@zirak.it> 2005-06-22:
+
 - Split the program in two parts:
-  - powerd daemon, which will do all the low level power management stuff
+
+  - powerd daemon, which will do all the low level power management stuff;
+
   - wmpower proper, which will be an interface to powerd, this way writing
-    other user interfaces (kde, gnome...) will become much easier as the
+    other user interfaces (KDE, Gnome etc.) will become much easier as the
     dirty stuff will be all in one place.
-- Add theme support
-- Allow for multiple warning/commands for different configurable battery levels...
+
+- Add theme support.
+
+- Allow for multiple warning/commands for different configurable battery
+  levels.
+
+
+TODO list by Cezary M. Kruk <c.kruk@bigfoot.com> 2012-04-16:
+
+- Test the program on the other machines.  (If you had to modify wmpower in
+  order to force the program to work with your machine send me the modified
+  version for approval and inclusion of your changes.)
+
+

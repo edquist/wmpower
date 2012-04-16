@@ -6,7 +6,7 @@
 
 #define PROC_FILE "/proc/i8k"
 
-/* we check for /proc/i18k */
+/* we check for /proc/i8k */
 int machine_is_dell(void)
 {
 	FILE *fp = fopen(PROC_FILE, "r");

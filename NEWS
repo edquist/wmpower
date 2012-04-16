@@ -1,3 +1,56 @@
+wmpower 0.5.1 (16 Apr 2012):
+- The configure file patched to allow the compilation of the program on
+  64-bit machines (the patch provided by John Gordon).
+
+
+wmpower 0.5.0 (4 Aug 2011):
+- Changed the method of detecting of a working ACPI: the program seeks
+  for /proc/acpi/wakeup file instead of /proc/acpi/info one.  The
+  /proc/acpi/info file was used for the last time in 2.6.35 kernel.
+  The wmpower version 0.5.0 should work with both older and newer
+  kernels.
+- Added the support for IBM/Lenovo ThinkPads.  The wmpower program used
+  on ThinkPad machine displays the speed of the fan instead of the
+  number of fans.
+- Changed battery status led behavior:
+    - red battery blinks when battery power is <= 5%;
+    - red battery shines when battery power is > 5% and <= 20%;
+    - yellow battery shines when battery power is > 20% and < 80%;
+    - green battery shines when battery power is >= 80%.
+- Modified the behavior of the digital time display:
+    - the sequence --:-- means there's no the battery or the battery is
+      invalid;
+    - the sequence 00:00 means the battery is completely charged (see
+      also BUGS file).
+- A few minor improvements of application interface included.
+- The program was tested in Slackware Linux 13.37 and Linux Mint 11
+  Katya on the following machines:
+    - IBM/Lenovo ThinkPads T40, T60, and X60s;
+    - Dell XPS (Dell users have to run ``modprobe i8k force=1'' command
+      before running wmpower);
+    - Fujitsu-Siemens Amilo (Fujitsu-Siemens doesn't provide the
+      information about fans number and CPU temperature -- it seems
+      Fujitsu-Siemens laptops aren't too friendly to GNU/Linux systems).
+- The partial tests were performed in Linux Mint 11 Katya on the
+  following machines:
+    - Toshiba Satellite (Toshiba users should try ``modprobe
+      toshiba_acpi'' command before running wmpower.  If that command
+      reports fatal error it means the particular model doesn't accept
+      the standard toshiba_acpi module -- see below for more
+      information);
+    - HP Pavilion.
+  Both above machines require for full ACPI maintenance Omnibook/
+  Toshiba Linux module.  I didn't tried that module so wmpower couldn't
+  show the fan status and the CPU temperature on these laptops.  To
+  use Omnibook/Toshiba Linux module download the latest version using
+  the command:
+  git clone git://omnibook.git.sourceforge.net/gitroot/omnibook/omnibook
+  The compiled module has the name omnibook.ko.
+- License changed to GNU GPL v. 3.
+- All the above changes, additions, and tests were made and the version
+  0.5.0 was released by Cezary M. Kruk <c.kruk@bigfoot.com>.
+
+
 wmpower 0.4.3 (25 Nov 2008):
 - Added new command line arguments to be able to force wmpower to use
   our values for minimum and maximum brightness.
@@ -6,6 +59,7 @@ wmpower 0.4.3 (25 Nov 2008):
   project has shut down its activities.
 - Fixed linker arguments to prevent issues compiling with -as-needed.
 
+
 wmpower 0.4.2 (22 Jul 2005):
 - Fixed a memory allocation issue that on rare occasions could make
   wmpower crash.
@@ -13,7 +67,8 @@ wmpower 0.4.2 (22 Jul 2005):
   fast charge the battery as it was already at maximum capacity.
 - When calculating battery time, and battery is charging, now wmpower
   displays time remaining until battery is fully charged instead of
-	how much time would be left if we were running on battery power.
+  how much time would be left if we were running on battery power.
+
 
 wmpower 0.4.1 (25 Feb 2005):
 - Fixed bug, reported by Pezhman Givy <phg@snafu.de>,

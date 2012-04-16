@@ -1,3 +1,26 @@
-There are no bugs that I am aware of...
-If you find one (or would like some nifty
-features added), please mail me...
+BUGS list by Cezary M. Kruk <c.kruk@bigfoot.com> 2011-07-17:
+
+* Some nearly completely charged batteries provide an invalid information to
+  the ACPI causing the problems with the estimation of the time remaining to
+  the end of the battery charging.  In such a situation wmpower displays the
+  charging times rapidly changing in a wide range.
+
+* With some completely charged batteries when you unplug the power and after
+  a while plug it a new the ACPI has the problems with determining the time
+  left to the end of the battery charging.  In such a situation wmpower
+  instead of the time left to the end of the charging displays 00:00 as if
+  battery was fully charged.
+
+* Some invalid batteries provide false information to the ACPI.  In such a
+  case wmpower can display: green or yellow battery, high percentage, long
+  rainbow bar, and 00:00 minutes and seconds remaining to the end of the
+  battery charging while in fact the battery doesn't work.  To avoid the
+  problems when you see 00:00 charging time look at the battery led on your
+  machine before you'll decide to unplug the power.
+
+* If wmpower displays the times inconsistent with the pattern -XX:XX when
+  charging the battery or with the pattern +XX:XX when discharging the
+  battery -- such as: 9:03, - 8:07, or --6:15 -- it means the battery is
+  going to die.  There's difficult to examine the program in such a situation
+  because the battery dies before one manages to perform the tests.
+

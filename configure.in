@@ -1,4 +1,4 @@
-AC_INIT([wmpower],[0.4.3],[michele.noberasco@tiscali.it])
+AC_INIT([wmpower],[0.5.0],[michele.noberasco@tiscali.it])
 AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR(src/wmpower.c)
 AM_INIT_AUTOMAKE([1.7 check-news dist-bzip2])

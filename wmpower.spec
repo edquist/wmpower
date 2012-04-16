@@ -1,5 +1,5 @@
 %define	name			wmpower
-%define	version			0.3.1
+%define	version			0.5.0
 %define	release			1
 
 
@@ -45,7 +45,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS BUGS ChangeLog COPYING INSTALL NEWS README README.compal THANKS TODO
+%doc AUTHORS BUGS COPYING ChangeLog INSTALL LEGGIMI NEWS README README.compal THANKS TODO
 %attr(7755,root,root)/usr/bin/wmpower
 
 

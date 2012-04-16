@@ -2,15 +2,17 @@
                           wmpower.c  -  description
                              -------------------
     begin                : Feb 10 2003
-    copyright            : (C) 2003,2004,2005 by Noberasco Michele
+    copyright            : (C) 2003-2005 by Michele Noberasco
     e-mail               : noberasco.gnu@disi.unige.it
+    copyright            : (C) 2011 by Cezary M. Kruk
+    e-mail               : c.kruk@bigfoot.com
 ***************************************************************************/
 
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
+ *   the Free Software Foundation; either version 3 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
@@ -45,6 +47,8 @@
 #include "wmpower_master_LowColor.xpm"
 #include "wmpower_mask.xbm"
 
+#include "power_management/ibm/ibm_lib.h"
+
 void ParseCMDLine (int argc, char *argv[]);
 void ShowACstatus(int ac_on_line);
 void ShowFanStatus(int fanstatus);
@@ -57,8 +61,9 @@ void ShowBatteryLed(int present, int percentage, int ac_on_line);
 int no_meddling     = 0;   /* Should we stop managing power status?        */
 int no_full_battery = 0;   /* Should we always use max power when plugged? */
 
-int CriticalLevel   = 10;  /* Battery critical level */
-int LowLevel        = 40;  /* Battery low level      */
+int CriticalLevel   = 5;   /* Battery critical level */
+int LowLevel        = 20;  /* Battery low level      */
+int HighLevel       = 80;  /* Battery high level     */
 
 #define CMDLINELEN 512
 int WarnTime = 2;          /* When to execute the warn command */
@@ -263,8 +268,27 @@ void ShowFanStatus(int fan_status)
     return;
   }
 
-  /* Plot fan status: 0 not active, 1 running */
-  copyXPMArea (fan_status * 6 + 4, 69, 6, 7, 23, 50);
+  /* Display fan status: 0 not active, 1 running */
+  /* For IBM/Lenovo ThinkPads displays fan speed */
+  if (machine_is_ibm())
+  {
+    int thousands = 0;
+    int hundreds = 0;
+    int tens = 0;
+    int units = 0;
+
+    thousands = fan_status/1000;
+    hundreds = fan_status/100 - 10 * thousands;
+    tens = fan_status/10 - 10 * hundreds - 100 * thousands;
+    units = fan_status - 10 * tens - 100 * hundreds - 1000 * thousands;
+
+    copyXPMArea (thousands * 6 + 4, 69, 6, 7, 5, 50);
+    copyXPMArea (hundreds * 6 + 4, 69, 6, 7, 11, 50);
+    copyXPMArea (tens * 6 + 4, 69, 6, 7, 17, 50);
+    copyXPMArea (units * 6 + 4, 69, 6, 7, 23, 50);
+  }
+  else
+    copyXPMArea (fan_status * 6 + 4, 69, 6, 7, 23, 50);
 }
 
 
@@ -298,8 +322,8 @@ void ShowBatteryLed(int present, int percentage, int ac_on_line)
     return;
   }
 
-  /* Battery Status: Critical.   */
-  /* Blink the red led on/off... */
+  /* Battery Status: Critical -- AC off line. */
+  /* Blinking red led                         */
   if (percentage <= CriticalLevel && !ac_on_line)
   {
     if (Toggle || (BlinkRate == 0.0))
@@ -316,17 +340,37 @@ void ShowBatteryLed(int present, int percentage, int ac_on_line)
     return;
   }
 
+  /* Battery Status: Critical -- AC on line. */
+  /* Fixed red led                           */
+  if (percentage <= CriticalLevel && ac_on_line)
+  {
+      copyXPMArea (4, 105, 16, 10, 43, 34);
+      return;
+  }
+
   /* Battery Status: Low. */
-  /* Fixed yellow led     */
-  if (percentage <= LowLevel)
+  /* Fixed red led        */
+  if (percentage > CriticalLevel && percentage <= LowLevel)
+  {
+    copyXPMArea (4, 105, 16, 10, 43, 34);
+    return;
+  }
+
+  /* Battery Status: Medium. */
+  /* Fixed yellow led        */
+  if (percentage > LowLevel && percentage < HighLevel)
   {
     copyXPMArea (22, 105, 16, 10, 43, 34);
     return;
   }
 
-  /* Battery Status: Normal. */
-  /* Fixed blue led          */
-  copyXPMArea (40, 105, 16, 10, 43, 34);
+  /* Battery Status: High. */
+  /* Fixed green led       */
+  if (percentage >= HighLevel)
+  {
+    copyXPMArea (40, 105, 16, 10, 43, 34);
+    return;
+  }
 }
 
 
@@ -371,13 +415,23 @@ void ShowBatteryTime(int time, int percentage, int charging, int ac_on_line)
   int battery_time=time;
   int hour, min;
 
-  if ( (battery_time < -1) || ((battery_time == 0)&&(percentage == 0)) || (ac_on_line&&(percentage == 100)) )
+  if ( (battery_time < -1) || ((battery_time == 0) && (percentage == 0)) )
   {
-    /* In case battery is fully charged and we are on AC power,
-		 * or there is some problem reading battery time
+    /* In case there is some problem reading battery time
 		 * we display a "null" indicator (--:--)
 		 */
     copyXPMArea (83, 106, 41, 9, 15, 7);
+    copyXPMArea (59, 106,  5, 9, 15, 7);
+    return;
+  }
+
+  if ( (ac_on_line && (percentage == 100)) || (ac_on_line && (time == 0)) )
+  {
+    /* In case battery is fully charged and we are on AC power,
+		 * we display a "0" indicator (00:00)
+		 */
+    copyXPMArea (83, 126, 41, 9, 15, 7);
+    copyXPMArea (59, 106,  5, 9, 15, 7);
     return;
   }
 
@@ -424,29 +478,35 @@ void ShowBatteryPercentage(int percentage)
     copyXPMArea (15, 81, 1, 7,  7, 34);
     copyXPMArea ( 5, 81, 6, 7,  9, 34);
     copyXPMArea ( 5, 81, 6, 7, 15, 34);
-    copyXPMArea (64, 81, 7, 7, 21, 34);	/* Show '%' */
+    copyXPMArea (64, 81, 7, 7, 20, 34);	/* Show '%' */
 
-    /* Show rainbow battery bar             */
+    /* Show full rainbow battery bar             */
     copyXPMArea (66, 52, 49, 9, 7, 21);
 
     return;
   }
+
   /* Show 10's */
-  if (percentage >= 10)	copyXPMArea ((percentage / 10) * 6 + 4, 81, 6, 7, 9, 34);
+  if (percentage >= 10)	copyXPMArea ((percentage / 10) * 6 + 5, 81, 6, 7, 9, 34);
 
   /* Show 1's */
-  copyXPMArea ((percentage % 10) * 6 + 4, 81, 6, 7, 15, 34);
+  copyXPMArea ((percentage % 10) * 6 + 5, 81, 6, 7, 15, 34);
 
   /* Show '%' */
-  copyXPMArea (64, 81, 7, 7, 21, 34);
+  copyXPMArea (64, 81, 7, 7, 20, 34);
 
   /* Show Meter */
-  k = percentage * 49 / 100;
+  k = percentage * 49.5 / 100;
+
+  if (percentage == 0)
+  {
+    /* Show empty rainbow battery bar             */
+    copyXPMArea (66, 31, 49, 9, 7, 21);
+    return;
+  }
 
   /* Show rainbow battery bar */
   copyXPMArea (66, 52, k, 9, 7, 21);
-  if (k % 2) copyXPMArea (66 + k - 1, 52, 1, 9, 7 + k - 1, 21);
-  else copyXPMArea (66 + k, 52, 1, 9, 7 + k, 21);
 }
 
 
@@ -454,9 +514,9 @@ void ShowBatteryPercentage(int percentage)
 /* Show message about usage */
 void message(void)
 {
-  printf("\nwmpower is a tool for checking and setting power management status for");
-  printf("\nlaptop computers. Right now is supports both APM and APCI enabled");
-  printf("\nkernels, plus special support for Toshiba and Compal hardware.");
+  printf("\nwmpower checks, displays, and changes power management settings on laptops.");
+  printf("\nIt supports both APM and APCI enabled kernels.");
+  printf("\nThe special support is provided for Compal, Dell, IBM/Lenovo, and Toshiba laptops.");
   printf("\n\nUsage: wmpower [options]\n");
   printf("\n\nOptions:\n");
   printf("\t-no-meddling\t\tDon't manage power status, just show info.\n");
@@ -467,9 +527,9 @@ void message(void)
   printf("\t\t\t\tnoflushd is a tool for managing spin-down\n");
   printf("\t\t\t\tof hard disks after a certain amount of time\n");
   printf("\t\t\t\tsee <http://noflushd.sourceforge.net> for details.\n");
-  printf("\t-no-toshiba\t\tDisable direct access to toshiba hardware,\n");
+  printf("\t-no-toshiba\t\tDisable direct access to Toshiba hardware,\n");
   printf("\t\t\t\tuse only generic ACPI/APM calls instead.\n");
-  printf("\t\t\t\tThis is recommended on newer toshibas.\n");
+  printf("\t\t\t\tThis is recommended on newer Toshibas.\n");
   printf("\t-battery <num>\t\tMonitor your nth battery instead of first one.\n");
   printf("\t-display <display>\tUse alternate display.\n");
   printf("\t-geometry <geometry>\twmpower window geometry.\n");
@@ -486,9 +546,12 @@ void message(void)
   printf("\t-G <governor>\t\tUse this CPUFreq scaling governor while running on AC power.\n");
   printf("\t-s\t\t\tMake wmpower log to syslog instead of standard error.\n");
   printf("\t-h\t\t\tDisplay this help screen.\n");
-  printf("\nClicking on program window at run-time overrides any option,");
-  printf("\nthus switching between low-power and full-power modes.");
-  printf("\nYou can use the mouse wheel to adjust your lcd brightness.\n\n");
+  printf("\nClicking on program window switches between low-power and full-power modes.");
+  printf("\nToshiba laptops users can use the mouse wheel to adjust LCD brightness.");
+  printf("\nToshiba laptops users should try \"modprobe toshiba_acpi\" command before running wmpower.");
+  printf("\nAlternatively they can try: git clone git://omnibook.git.sourceforge.net/gitroot/omnibook/omnibook");
+  printf("\nHP laptops users can try the same omnibook.ko Linux kernel module.");
+  printf("\nDell laptops users have to run \"modprobe i8k force=1\" command before running wmpower.\n\n");
 
   exit(EXIT_FAILURE);
 }
