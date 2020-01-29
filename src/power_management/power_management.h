@@ -34,7 +34,7 @@ typedef enum
 	IS_2_6 = 0,
 	IS_OTHER
 } kernel_versions;
-kernel_versions kernel_version;
+extern kernel_versions kernel_version;
 
 typedef struct
 {
@@ -49,11 +49,11 @@ typedef struct
 
 } pm_status;
 
-int minBrightness;
-int maxBrightness;
-int waittime; /* /proc polling time */
-char *cpufreq_online_governor;
-char *cpufreq_offline_governor;
+extern int minBrightness;
+extern int maxBrightness;
+extern int waittime; /* /proc polling time */
+extern char *cpufreq_online_governor;
+extern char *cpufreq_offline_governor;
 
 int pm_support(int which_battery);
 void get_power_status(pm_status *power_status);

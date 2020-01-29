@@ -44,7 +44,7 @@
 #define COMPAL_PROC_FILE_BATT	"/proc/omnibook/battery"
 
 
-char  compal_model[COMPAL_MAX_MODEL_INFO];
+extern char  compal_model[COMPAL_MAX_MODEL_INFO];
 
 char *getvaluefromhash (char *key, char *hash);
 

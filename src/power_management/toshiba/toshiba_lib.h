@@ -34,7 +34,7 @@
 #define TOSHIBA_LCD_MED 1
 #define TOSHIBA_LCD_MAX 2
 
-char toshiba_model[255];
+extern char toshiba_model[255];
 
 int machine_is_toshiba(int *use_toshiba_hardware);
 int toshiba_get_fan_status(int use_toshiba_hardware);

@@ -48,6 +48,8 @@
 #include "power_management.h"
 #include "lib_utils.h"
 
+char battery_type;
+int batt_count;
 
 /* here we put temp stuff read from proc files */
 char buf[512];

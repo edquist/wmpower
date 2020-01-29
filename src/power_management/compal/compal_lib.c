@@ -40,6 +40,7 @@
 #include "lib_utils.h"
 #include "power_management.h"
 
+char  compal_model[COMPAL_MAX_MODEL_INFO];
 
 
 /* gets a value from a strtok-ed buffer; for reading from /proc */

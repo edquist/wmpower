@@ -57,6 +57,7 @@
 #include "lib_utils.h"
 #include "power_management.h"
 
+char toshiba_model[255];
 
 void UglyHack(void);
 int Get_Fan_Status(void);

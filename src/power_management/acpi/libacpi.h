@@ -67,7 +67,7 @@ typedef struct
 }
 ACPIinfo;
 
-char battery_type;
+extern char battery_type;
 
 typedef struct
 {
@@ -76,7 +76,7 @@ typedef struct
 ACADstate;
 
 /* number of batteries detected */
-int batt_count;
+extern int batt_count;
 
 int  check_acpi (void);
 void read_acad_state (ACADstate *acadstate);

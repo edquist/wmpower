@@ -59,6 +59,13 @@ int battery_present;
 int use_noflushd=1;
 int use_cpufreq=1;
 
+kernel_versions kernel_version;
+int minBrightness;
+int maxBrightness;
+int waittime; /* /proc polling time */
+char *cpufreq_online_governor;
+char *cpufreq_offline_governor;
+
 /* Battery to monitor */
 int Battery;
 
