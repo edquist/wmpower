@@ -1,9 +1,9 @@
 /***************************************************************************
-                      power_management.h  -  description
+                          libsysps.h  -  description
                              -------------------
-    begin                : Feb 10 2003
-    copyright            : (C) 2003 by Noberasco Michele
-    e-mail               : 2001s098@educ.disi.unige.it
+    begin                : Feb 18 2022
+    copyright            : (C) 2022 by Carl Edquist
+    e-mail               : edquist@cs.wisc.edu
 ***************************************************************************/
 
 /***************************************************************************
@@ -25,44 +25,20 @@
  *                                                                         *
  ***************************************************************************/
 
-#define PM_Error -1
-#define PM_ACPI 2
-#define PM_APM  3
-#define PM_SYSPS 4
-
-typedef enum
-{
-	IS_2_6 = 0,
-	IS_OTHER
-} kernel_versions;
-extern kernel_versions kernel_version;
 
 typedef struct
 {
-	int battery_percentage;
-	int battery_charging;
-	int battery_time;
-	int battery_present;
-	int ac_on_line;
-	int fan_status;
-	int temperature;
-	int temp_is_celsius;
+    int present;             /* 1 if present, 0 if no battery   */
+    int power_now;           /* 1000 * present rate / mW        */
+    int energy_full;         /* 1000 * last full capacity / mWh */
+    int energy_now;          /* 1000 * remaining capacity / mWh */
+    int capacity;            /* battery percentage              */
 
-} pm_status;
+    int ac_on_line;
+    int charging;
+    int time_remaining;      /* time remaining in minutes       */
+} SYSPS_info;
 
-extern int minBrightness;
-extern int maxBrightness;
-extern int waittime; /* /proc polling time */
-extern char *cpufreq_online_governor;
-extern char *cpufreq_offline_governor;
+void sysps_read_bat_info(int bat, SYSPS_info *info);
+int check_sysps(void);
 
-int pm_support(int which_battery);
-void get_power_status(pm_status *power_status);
-void set_pm_features(void);
-int fast_battery_charge(int toggle);
-int get_fast_battery_charge_mode(void);
-void set_noflushd_use(int toggle);
-void set_toshiba_hardware_use(int toggle);
-void set_cpufreq_use(int toggle);
-void lcdBrightness_UpOneStep();
-void lcdBrightness_DownOneStep();

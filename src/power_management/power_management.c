@@ -36,6 +36,7 @@
 #include "power_management.h"
 #include "libacpi.h"
 #include "libapm.h"
+#include "libsysps.h"
 #include "toshiba_lib.h"
 #include "ibm_lib.h"
 #include "dell_lib.h"
@@ -136,6 +137,14 @@ int pm_support(int use_this_battery)
 			cpufreq_online_governor = CPUFREQ_GOV_PERFORMANCE;
 	}
 
+  /* Do we have power supply info from /sys ? */
+  if (check_sysps())
+  {
+    pm_type= PM_SYSPS;
+    fprintf(stderr, "Detected SYSPS subsystem\n");
+    return 1;
+  }
+
   /* Is this an acpi system? */
   if (check_acpi())
   {
@@ -164,6 +173,45 @@ int pm_support(int use_this_battery)
 
 void get_power_status(pm_status *power_status)
 {
+  /* Do we have PM info from /sys ? */
+  if (pm_type == PM_SYSPS)
+  {
+    SYSPS_info syspsinfo;
+
+    sysps_read_bat_info(Battery - 1, &syspsinfo);
+
+    power_status->ac_on_line         = syspsinfo.ac_on_line;
+    power_status->battery_charging   = syspsinfo.charging;
+    power_status->battery_percentage = syspsinfo.capacity;
+    power_status->battery_time       = syspsinfo.time_remaining;
+    power_status->battery_present    = syspsinfo.present;
+
+    ac_on_line         = power_status->ac_on_line;
+    battery_present    = power_status->battery_present;
+    battery_percentage = power_status->battery_percentage;
+
+    /* Get temperature and fan status */
+    power_status->fan_status=get_fan_status();
+    get_temperature(&(power_status->temperature),
+                    &(power_status->temp_is_celsius));
+
+    if (fast_charge_mode && (power_status->battery_percentage == 100))
+	{
+	  fast_battery_charge(0);
+	}
+
+    /* Let's see wether we failed to get battery time */
+    if (battery_present && (battery_percentage < 100)
+                        && (power_status->battery_time <= 0))
+    {
+      /* OK, we failed, we calculate the value ourselves */
+      power_status->battery_time =
+          calculate_battery_time(battery_percentage, ac_on_line);
+    }
+
+	return;
+  }
+
   /* Is this an ACPI system? */
   if (pm_type == PM_ACPI)
   {

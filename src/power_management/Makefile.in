@@ -113,7 +113,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 
-INCLUDES = -Iacpi -Iapm -Icompal -Idell -Iibm -Itoshiba -Icpufreq -Ilib_utils
+INCLUDES = -Iacpi -Iapm -Isysps -Icompal -Idell -Iibm -Itoshiba -Icpufreq -Ilib_utils
 
 AM_CFLAGS = -DX86=@X86@
 
@@ -125,6 +125,8 @@ libpower_a_SOURCES = power_management.c \
 								acpi/libacpi.h \
 								apm/libapm.c \
 								apm/libapm.h \
+								sysps/libsysps.c \
+								sysps/libsysps.h \
 								compal/compal_lib.c \
 								compal/compal_lib.h \
 								dell/dell_lib.c \
@@ -151,9 +153,9 @@ LIBRARIES = $(noinst_LIBRARIES)
 libpower_a_AR = $(AR) cru
 libpower_a_LIBADD =
 am_libpower_a_OBJECTS = power_management.$(OBJEXT) libacpi.$(OBJEXT) \
-	libapm.$(OBJEXT) compal_lib.$(OBJEXT) dell_lib.$(OBJEXT) \
-	ibm_lib.$(OBJEXT) toshiba_lib.$(OBJEXT) hci.$(OBJEXT) sci.$(OBJEXT) \
-	lib_utils.$(OBJEXT) cpufreq.$(OBJEXT)
+	libapm.$(OBJEXT) libsysps.$(OBJEXT) compal_lib.$(OBJEXT) \
+	dell_lib.$(OBJEXT) ibm_lib.$(OBJEXT) toshiba_lib.$(OBJEXT) \
+	hci.$(OBJEXT) sci.$(OBJEXT) lib_utils.$(OBJEXT) cpufreq.$(OBJEXT)
 libpower_a_OBJECTS = $(am_libpower_a_OBJECTS)
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir)
@@ -162,7 +164,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/compal_lib.Po ./$(DEPDIR)/cpufreq.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/dell_lib.Po ./$(DEPDIR)/ibm_lib.Po ./$(DEPDIR)/hci.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/lib_utils.Po ./$(DEPDIR)/libacpi.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/libapm.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/libapm.Po ./$(DEPDIR)/libsysps.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/power_management.Po ./$(DEPDIR)/sci.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/toshiba_lib.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -206,6 +208,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lib_utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libacpi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libapm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsysps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/power_management.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sci.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/toshiba_lib.Po@am__quote@
@@ -275,6 +278,28 @@ libapm.obj: apm/libapm.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/libapm.Po' tmpdepfile='$(DEPDIR)/libapm.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libapm.obj `if test -f 'apm/libapm.c'; then $(CYGPATH_W) 'apm/libapm.c'; else $(CYGPATH_W) '$(srcdir)/apm/libapm.c'; fi`
+
+libsysps.o: sysps/libsysps.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsysps.o -MD -MP -MF "$(DEPDIR)/libsysps.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o libsysps.o `test -f 'sysps/libsysps.c' || echo '$(srcdir)/'`sysps/libsysps.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libsysps.Tpo" "$(DEPDIR)/libsysps.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/libsysps.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sysps/libsysps.c' object='libsysps.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/libsysps.Po' tmpdepfile='$(DEPDIR)/libsysps.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsysps.o `test -f 'sysps/libsysps.c' || echo '$(srcdir)/'`sysps/libsysps.c
+
+libsysps.obj: sysps/libsysps.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT libsysps.obj -MD -MP -MF "$(DEPDIR)/libsysps.Tpo" \
+@am__fastdepCC_TRUE@	  -c -o libsysps.obj `if test -f 'sysps/libsysps.c'; then $(CYGPATH_W) 'sysps/libsysps.c'; else $(CYGPATH_W) '$(srcdir)/sysps/libsysps.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/libsysps.Tpo" "$(DEPDIR)/libsysps.Po"; \
+@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/libsysps.Tpo"; exit 1; \
+@am__fastdepCC_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sysps/libsysps.c' object='libsysps.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/libsysps.Po' tmpdepfile='$(DEPDIR)/libsysps.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o libsysps.obj `if test -f 'sysps/libsysps.c'; then $(CYGPATH_W) 'sysps/libsysps.c'; else $(CYGPATH_W) '$(srcdir)/sysps/libsysps.c'; fi`
 
 compal_lib.o: compal/compal_lib.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT compal_lib.o -MD -MP -MF "$(DEPDIR)/compal_lib.Tpo" \

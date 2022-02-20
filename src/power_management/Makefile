@@ -113,7 +113,7 @@ sharedstatedir = ${prefix}/com
 sysconfdir = ${prefix}/etc
 target_alias = 
 
-INCLUDES = -Iacpi -Iapm -Icompal -Idell -Iibm -Itoshiba -Icpufreq -Ilib_utils
+INCLUDES = -Iacpi -Iapm -Isysps -Icompal -Idell -Iibm -Itoshiba -Icpufreq -Ilib_utils
 
 AM_CFLAGS = -DX86=1
 
@@ -125,6 +125,8 @@ libpower_a_SOURCES = power_management.c \
 								acpi/libacpi.h \
 								apm/libapm.c \
 								apm/libapm.h \
+								sysps/libsysps.c \
+								sysps/libsysps.h \
 								compal/compal_lib.c \
 								compal/compal_lib.h \
 								dell/dell_lib.c \
